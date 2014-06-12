@@ -20,15 +20,15 @@ public class DefaultProteinExport extends AbstractExport implements ProteinExpor
 		final List<ProteinExportEntry> exportEntries = new ArrayList<ProteinExportEntry>(files.length);
 		
 		for (File file : files) {
-			exportEntries.add(new DefaultProteinExportEntry(file));
+			exportEntries.add(new DefaultProteinExportEntry(this, file));
 		}
 		
 		return exportEntries;
 	}
 	
 	public class DefaultProteinExportEntry extends DefaultExportEntry implements ProteinExportEntry {
-		public DefaultProteinExportEntry(File baseFile) {
-			super(baseFile);
+		public DefaultProteinExportEntry(Export export, File baseFile) {
+			super(export, baseFile);
 		}
 	}
 }

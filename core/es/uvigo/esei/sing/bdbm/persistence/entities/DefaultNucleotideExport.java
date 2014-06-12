@@ -20,15 +20,15 @@ public class DefaultNucleotideExport extends AbstractExport implements Nucleotid
 		final List<NucleotideExportEntry> exportEntries = new ArrayList<NucleotideExportEntry>(files.length);
 		
 		for (File file : files) {
-			exportEntries.add(new DefaultNucleotideExportEntry(file));
+			exportEntries.add(new DefaultNucleotideExportEntry(this, file));
 		}
 		
 		return exportEntries;
 	}
 	
 	public class DefaultNucleotideExportEntry extends DefaultExportEntry implements NucleotideExportEntry {
-		public DefaultNucleotideExportEntry(File baseFile) {
-			super(baseFile);
+		public DefaultNucleotideExportEntry(Export export, File baseFile) {
+			super(export, baseFile);
 		}
 	}
 }

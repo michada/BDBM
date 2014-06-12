@@ -8,6 +8,4 @@ public interface BDBMRepositoryManager extends Repository {
 	public abstract ExportRepositoryManager export();
 
 	public abstract SearchEntryRepositoryManager searchEntry();
-	
-	public abstract ORFRepositoryManager orf();
 }

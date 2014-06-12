@@ -3,9 +3,11 @@ package es.uvigo.esei.sing.bdbm.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -21,6 +24,8 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+
+import org.apache.commons.io.FileUtils;
 
 import es.uvigo.ei.sing.yacli.Command;
 import es.uvigo.ei.sing.yacli.DefaultParameters;
@@ -30,25 +35,24 @@ import es.uvigo.ei.sing.yacli.ParameterValue;
 import es.uvigo.ei.sing.yacli.Parameters;
 import es.uvigo.ei.sing.yacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTDBAliasToolCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ConvertOrfToFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
+import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeObject;
 import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ConvertOrfToFastaCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
+import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.ORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
@@ -126,120 +130,123 @@ public class OperationsRepositoryListener extends MouseAdapter {
 				final JTree tree = (JTree) e.getSource();
 				
 				final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-				tree.setSelectionPath(path);
-				
-				if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-					final DefaultMutableTreeNode node = 
-						(DefaultMutableTreeNode) path.getLastPathComponent();
+				if (path != null) {
+					tree.setSelectionPath(path);
 					
-					if (node.getUserObject() instanceof Fasta) {
-						final Fasta fasta = (Fasta) node.getUserObject();
+					if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
+						final DefaultMutableTreeNode node = 
+							(DefaultMutableTreeNode) path.getLastPathComponent();
 						
-						final Action[] actions;
-						if (fasta instanceof NucleotideFasta) {
-							actions = new Action[] {
-								this.createBDBMCommandAction(
-									MakeBLASTDBCommand.class, 
-									MakeBLASTDBCommandDialog.class,
-									new DefaultParameters(createEntityParams(
-										fasta,
-										MakeBLASTDBCommand.OPTION_DB_TYPE,
-										MakeBLASTDBCommand.OPTION_INPUT
-									))
-								),
-								this.createBDBMCommandAction(
-									GetORFCommand.class, 
-									GetORFCommandDialog.class, 
-									singletonParameters(
-										GetORFCommand.OPTION_FASTA, 
-										fasta.getFile().getAbsolutePath()
+						if (node.getUserObject() instanceof Fasta) {
+							final Fasta fasta = (Fasta) node.getUserObject();
+							
+							final Action[] actions;
+							if (fasta instanceof NucleotideFasta) {
+								actions = new Action[] {
+									this.createBDBMCommandAction(
+										MakeBLASTDBCommand.class, 
+										MakeBLASTDBCommandDialog.class,
+										new DefaultParameters(createEntityParams(
+											fasta,
+											MakeBLASTDBCommand.OPTION_DB_TYPE,
+											MakeBLASTDBCommand.OPTION_INPUT
+										))
+									),
+									this.createBDBMCommandAction(
+										GetORFCommand.class, 
+										GetORFCommandDialog.class, 
+										singletonParameters(
+											GetORFCommand.OPTION_FASTA, 
+											fasta.getFile().getAbsolutePath()
+										)
 									)
-								)
-							};
-						} else {
-							actions = new Action[] {
+								};
+							} else {
+								actions = new Action[] {
+									this.createBDBMCommandAction(
+										MakeBLASTDBCommand.class, 
+										MakeBLASTDBCommandDialog.class,
+										new DefaultParameters(createEntityParams(
+											fasta,
+											MakeBLASTDBCommand.OPTION_DB_TYPE,
+											MakeBLASTDBCommand.OPTION_INPUT
+										))
+									)
+								};
+							}
+							
+							this.showPopupMenu(
+								"Fasta", 
+								"Fasta", 
+								tree, 
+								fasta, 
+								e.getX(), 
+								e.getY(),
+								actions
+							);
+						} else if (node.getUserObject() instanceof Database) {
+							final Database database = (Database) node.getUserObject();
+							
+							final BDBMCommandAction retrieveCA;
+	
+							this.showPopupMenu(
+								"Database", 
+								"Database", 
+								tree, 
+								database, 
+								e.getX(), 
+								e.getY(), 
 								this.createBDBMCommandAction(
-									MakeBLASTDBCommand.class, 
-									MakeBLASTDBCommandDialog.class,
+									BLASTDBAliasToolCommand.class, 
+									BLASTDBAliasToolCommandDialog.class,
+									singletonParameters(
+										BLASTDBAliasToolCommand.OPTION_DATABASES, 
+										Arrays.asList(database.getBaseFile().getAbsolutePath())
+									)
+								),
+								retrieveCA = this.createBDBMCommandAction(
+									RetrieveSearchEntryCommand.class,
+									RetrieveSearchEntryCommandDialog.class,
 									new DefaultParameters(createEntityParams(
-										fasta,
-										MakeBLASTDBCommand.OPTION_DB_TYPE,
-										MakeBLASTDBCommand.OPTION_INPUT
+										database, 
+										RetrieveSearchEntryCommand.OPTION_DB_TYPE, 
+										RetrieveSearchEntryCommand.OPTION_DATABASE
 									))
 								)
-							};
+							);
+							
+							retrieveCA.addParamValue(boolean.class, this.controller.isAccessionInferEnabled());
+						} else if (node.getUserObject() instanceof SearchEntry) {
+							final SearchEntry searchEntry = (SearchEntry) node.getUserObject();
+							
+							this.showPopupMenu(
+								"Search Entry", "Search Entry", tree, searchEntry, 
+								e.getX(), e.getY()
+							);
+						} else if (node.getUserObject() instanceof Export) {
+							final Export export = (Export) node.getUserObject();
+							
+							this.showPopupMenu(
+								"Database Export", "Database Export", tree, export, 
+								e.getX(), e.getY()
+							);
+						} else if (node.getUserObject() instanceof ExportEntry) {
+							final ExportEntry entry = (ExportEntry) node.getUserObject();
+							
+							this.showPopupMenu(
+								"Database Export Entry", "Database Export Entry", tree, entry, 
+								e.getX(), e.getY()
+							);
+						} else if (node instanceof TextFileMutableTreeObject) {
+							final File file = ((TextFileMutableTreeObject) node).getFile();
+							
+							if (file.isFile()) {
+								this.showPopupMenu(
+									"File", tree, file, 
+									e.getX(), e.getY()
+								);
+							}
 						}
-						
-						this.showPopupMenu(
-							"Fasta", 
-							"Fasta", 
-							tree, 
-							fasta, 
-							e.getX(), 
-							e.getY(),
-							actions
-						);
-					} else if (node.getUserObject() instanceof Database) {
-						final Database database = (Database) node.getUserObject();
-						
-						final BDBMCommandAction retrieveCA;
-
-						this.showPopupMenu(
-							"Database", 
-							"Database", 
-							tree, 
-							database, 
-							e.getX(), 
-							e.getY(), 
-							this.createBDBMCommandAction(
-								BLASTDBAliasToolCommand.class, 
-								BLASTDBAliasToolCommandDialog.class,
-								singletonParameters(
-									BLASTDBAliasToolCommand.OPTION_DATABASES, 
-									Arrays.asList(database.getBaseFile().getAbsolutePath())
-								)
-							),
-							retrieveCA = this.createBDBMCommandAction(
-								RetrieveSearchEntryCommand.class,
-								RetrieveSearchEntryCommandDialog.class,
-								new DefaultParameters(createEntityParams(
-									database, 
-									RetrieveSearchEntryCommand.OPTION_DB_TYPE, 
-									RetrieveSearchEntryCommand.OPTION_DATABASE
-								))
-							)
-						);
-						
-						retrieveCA.addParamValue(boolean.class, this.controller.isAccessionInferEnabled());
-					} else if (node.getUserObject() instanceof SearchEntry) {
-						final SearchEntry searchEntry = (SearchEntry) node.getUserObject();
-						
-						this.showPopupMenu(
-							"Search Entry", "Search Entry", tree, searchEntry, 
-							e.getX(), e.getY()
-						);
-					} else if (node.getUserObject() instanceof Export) {
-						final Export export = (Export) node.getUserObject();
-						
-						this.showPopupMenu(
-							"Export", "Export", tree, export, 
-							e.getX(), e.getY()
-						);
-					} else if (node.getUserObject() instanceof ORF) {
-						final ORF orf  = (ORF) node.getUserObject();
-						
-						this.showPopupMenu(
-							"Open Reading Frame", "Open Reading Frame", tree, orf, 
-							e.getX(), e.getY(),
-							this.createBDBMCommandAction(
-								ConvertOrfToFastaCommand.class, 
-								ConvertOrfToFastaCommandDialog.class, 
-								singletonParameters(
-									ConvertOrfToFastaCommand.OPTION_ORF_FILE, 
-									orf.getFile().getAbsolutePath()
-								)
-							)
-						);
 					}
 				}
 			}
@@ -270,9 +277,12 @@ public class OperationsRepositoryListener extends MouseAdapter {
 			menu.addSeparator();
 		}
 
+		final Window parentWindow = SwingUtilities.getWindowAncestor(parent);
+		
+		menu.add(new ExportToAction(parentWindow, entity, entityName));
 		menu.add(new DeleteAction(
 			this.controller.getController(), 
-			SwingUtilities.getWindowAncestor(parent), 
+			parentWindow, 
 			entity, 
 			entityName
 		));
@@ -280,6 +290,83 @@ public class OperationsRepositoryListener extends MouseAdapter {
 		menu.show(parent, x, y);
 	}
 	
+	protected void showPopupMenu(
+		String title, 
+		Component parent, 
+		File file,
+		int x, int y
+	) {
+		final JPopupMenu menu = new JPopupMenu(title);
+		final JMenuItem itemTitle = new JMenuItem(title);
+		itemTitle.setEnabled(false);
+		itemTitle.setFont(itemTitle.getFont().deriveFont(Font.BOLD));
+		itemTitle.setForeground(Color.BLACK);
+		menu.add(itemTitle);
+		menu.addSeparator();
+		
+		final Window parentWindow = SwingUtilities.getWindowAncestor(parent);
+		
+		menu.add(new ExportToAction(parentWindow, file, "File"));
+		
+		menu.show(parent, x, y);
+	}
+	
+	protected static class ExportToAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		
+		private final File file;
+		private final String entityName;
+		private final Component parent;
+
+		private ExportToAction(Component parent, SequenceEntity entity, String entityName) {
+			this(parent, entity.getBaseFile(), entityName);
+		}
+
+		private ExportToAction(Component parent, File file, String entityName) {
+			super("Export " + entityName + " To...");
+			this.file = file;
+			this.entityName = entityName;
+			this.parent = parent;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			final JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle("Export " + this.entityName + " to...");
+			fileChooser.setMultiSelectionEnabled(false);
+			
+			if (this.file.isDirectory()) {
+				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			} else {
+				fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			}
+			
+			if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+				try {
+					if (this.file.isDirectory()) {
+						FileUtils.copyDirectory(this.file, fileChooser.getSelectedFile());
+					} else {
+						FileUtils.copyFile(this.file, fileChooser.getSelectedFile());
+					}
+					
+					JOptionPane.showMessageDialog(
+						parent,
+						this.entityName + " was correctly exported to: " + this.file.getAbsolutePath() + ".",
+						"Export Finished",
+						JOptionPane.INFORMATION_MESSAGE
+					);
+				} catch (IOException ioe) {
+					JOptionPane.showMessageDialog(
+						parent,
+						"Error while exporting " + this.entityName + ": " + ioe.getMessage(),
+						"Export Error",
+						JOptionPane.ERROR_MESSAGE
+					);
+				}
+			}
+		}
+	}
+
 	protected static class DeleteAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
 		

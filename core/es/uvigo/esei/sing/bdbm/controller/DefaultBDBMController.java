@@ -1,7 +1,10 @@
 package es.uvigo.esei.sing.bdbm.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -16,7 +19,6 @@ import es.uvigo.esei.sing.bdbm.persistence.DatabaseRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
 import es.uvigo.esei.sing.bdbm.persistence.ExportRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.FastaRepositoryManager;
-import es.uvigo.esei.sing.bdbm.persistence.ORFRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.SearchEntryRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
@@ -25,7 +27,6 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideExport;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideSearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideSearchEntry.NucleotideQuery;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinDatabase;
@@ -80,8 +81,6 @@ public class DefaultBDBMController implements BDBMController {
 			return this.repositoryManager.searchEntry().exists((SearchEntry) entity);
 		} else if (entity instanceof Export) {
 			return this.repositoryManager.export().exists((Export) entity);
-		} else if (entity instanceof NucleotideORF) {
-			return this.repositoryManager.orf().exists((NucleotideORF) entity);
 		} else {
 			return false;
 		}
@@ -97,8 +96,8 @@ public class DefaultBDBMController implements BDBMController {
 			return this.delete((SearchEntry) entity);
 		} else if (entity instanceof Export) {
 			return this.delete((Export) entity);
-		} else if (entity instanceof NucleotideORF) {
-			return this.delete((NucleotideORF) entity);
+		} else if (entity instanceof ExportEntry) {
+			return this.delete((ExportEntry) entity);
 		} else {
 			return false;
 		}
@@ -125,8 +124,15 @@ public class DefaultBDBMController implements BDBMController {
 	}
 	
 	@Override
-	public boolean delete(NucleotideORF orf) throws IOException {
-		return this.repositoryManager.orf().delete(orf);
+	public boolean delete(ExportEntry exportEntry) throws IOException {
+		final Export export = exportEntry.getExport();
+		
+		export.deleteExportEntry(exportEntry);
+		if (export.listEntries().isEmpty()) {
+			return this.delete(export);
+		} else {
+			return true;
+		}
 	}
 	
 	@Override
@@ -167,11 +173,6 @@ public class DefaultBDBMController implements BDBMController {
 	@Override
 	public NucleotideExport[] listNucleotideExports() {
 		return this.repositoryManager.export().listNucleotide();
-	}
-	
-	@Override
-	public NucleotideORF[] listNucleotideORFs() {
-		return this.repositoryManager.orf().listNucleotide();
 	}
 	
 	@Override
@@ -291,6 +292,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue, 
 		boolean filter, 
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -302,7 +304,7 @@ public class DefaultBDBMController implements BDBMController {
 			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile)) {
 				this.blastBinariesExecutor.executeBlastN(database, queryFile, export, expectedValue, filter, outputName);
 				
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -321,6 +323,7 @@ public class DefaultBDBMController implements BDBMController {
 		NucleotideQuery query, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -331,7 +334,7 @@ public class DefaultBDBMController implements BDBMController {
 		try {
 			this.blastBinariesExecutor.executeBlastN(database, query, export, expectedValue, filter, outputName);
 			
-			generateExportEntry(database, outputName, export);
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -347,6 +350,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue, 
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -360,7 +364,7 @@ public class DefaultBDBMController implements BDBMController {
 					database, queryFile, export, expectedValue, filter, outputName
 				);
 
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -379,6 +383,7 @@ public class DefaultBDBMController implements BDBMController {
 		ProteinQuery query, 
 		BigDecimal expectedValue, 
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -391,7 +396,7 @@ public class DefaultBDBMController implements BDBMController {
 				database, query, export, expectedValue, filter, outputName
 			);
 
-			generateExportEntry(database, outputName, export);
+			this.generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -407,6 +412,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -418,7 +424,7 @@ public class DefaultBDBMController implements BDBMController {
 			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile)) {
 				this.blastBinariesExecutor.executeTBlastX(database, queryFile, export, expectedValue, filter, outputName);
 				
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -437,6 +443,7 @@ public class DefaultBDBMController implements BDBMController {
 		NucleotideQuery query, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -447,7 +454,7 @@ public class DefaultBDBMController implements BDBMController {
 		try {
 			this.blastBinariesExecutor.executeTBlastX(database, query, export, expectedValue, filter, outputName);
 			
-			generateExportEntry(database, outputName, export);
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -463,6 +470,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -474,7 +482,7 @@ public class DefaultBDBMController implements BDBMController {
 			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.PROTEIN, queryFile)) {
 				this.blastBinariesExecutor.executeTBlastN(database, queryFile, export, expectedValue, filter, outputName);
 				
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -493,6 +501,7 @@ public class DefaultBDBMController implements BDBMController {
 		ProteinQuery query, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -503,7 +512,7 @@ public class DefaultBDBMController implements BDBMController {
 		try {
 			this.blastBinariesExecutor.executeTBlastN(database, query, export, expectedValue, filter, outputName);
 			
-			generateExportEntry(database, outputName, export);
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -516,7 +525,8 @@ public class DefaultBDBMController implements BDBMController {
 	private void generateExportEntry(
 		final Database database,
 		final String outputName, 
-		final Export export
+		final Export export,
+		final boolean keepSingleSequenceFiles
 	) throws InterruptedException, ExecutionException, IOException {
 		final ExportEntry exportEntry = export.getExportEntry(outputName);
 		
@@ -539,47 +549,81 @@ public class DefaultBDBMController implements BDBMController {
 					true
 				);
 			}
+			
+			if (!keepSingleSequenceFiles)
+				exportEntry.deleteSequenceFiles();
 		}
 	}
 	
 	@Override
-	public NucleotideORF getORF(
+	public NucleotideFasta getORF(
 		NucleotideFasta fasta,
 		int minSize,
 		int maxSize,
-		String outputName
+		String outputName,
+		boolean noNewLines
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
-		final ORFRepositoryManager orfManager = this.repositoryManager.orf();
-		final NucleotideORF orf = orfManager.getNucleotide(outputName);
+		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
+		final NucleotideFasta orf = fastaManager.getNucleotide(outputName);
 		
-		if (orfManager.exists(orf)) {
+		if (fastaManager.exists(orf)) {
 			throw new IllegalArgumentException("ORF already exists: " + outputName);
 		} else {
 			try {
 				this.embossBinariesExecutor.executeGetORF(fasta, orf, minSize, maxSize);
+				if (noNewLines) {
+					removeNewLines(orf);
+				}
 				
 				return orf;
 			} finally {
-				if (!orfManager.exists(orf))
-					orfManager.delete(orf);
+				if (!fastaManager.exists(orf))
+					fastaManager.delete(orf);
 			}
 		}
 	}
-
+	
 	@Override
-	public Fasta convertOrfToFasta(NucleotideORF orf, String fastaName)
-		throws EntityAlreadyExistsException, IOException {
-		final ORFRepositoryManager orfManager = this.repositoryManager.orf();
-		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
+	public void removeNewLines(Fasta fasta) throws IOException {
+		final File tmpFile = File.createTempFile("bdbm", "fasta");
+		tmpFile.deleteOnExit();
 		
-		if (orfManager.exists(orf)) {
-			final Fasta fasta = fastaManager.create(orf.getType(), fastaName);
+		try (BufferedReader br = new BufferedReader(new FileReader(fasta.getFile()));
+			PrintWriter pw = new PrintWriter(tmpFile)
+		) {
+			String line;
 			
-			FileUtils.copyFile(orf.getFile(), fasta.getFile());
-			
-			return fasta;
-		} else {
-			throw new IOException("Unknown ORF: " + orf);
+			boolean first = true;
+			while ((line = br.readLine()) != null) {
+				if (line.startsWith(">")) {
+					if (first) {
+						pw.println();
+						first = false;
+					}
+					
+					pw.println(line);
+				} else {
+					pw.print(line);
+				}
+			}
 		}
+		
+		fasta.getFile().delete();
+		FileUtils.moveFile(tmpFile, fasta.getFile());
 	}
+
+//	private Fasta convertOrfToFasta(NucleotideFasta orf, String fastaName)
+//		throws EntityAlreadyExistsException, IOException {
+//		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
+//		
+//		if (fastaManager.exists(orf)) {
+//			final Fasta fasta = fastaManager.create(orf.getType(), fastaName);
+//			
+//			FileUtils.copyFile(orf.getFile(), fasta.getFile());
+//			
+//			return fasta;
+//		} else {
+//			throw new IOException("Unknown ORF: " + orf);
+//		}
+//	}
 }

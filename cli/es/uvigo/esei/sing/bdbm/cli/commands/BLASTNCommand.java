@@ -7,6 +7,7 @@ import es.uvigo.ei.sing.yacli.Parameters;
 import es.uvigo.ei.sing.yacli.StringOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.BigDecimalOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.BooleanOption;
+import es.uvigo.esei.sing.bdbm.cli.commands.converters.DefaultValueBooleanOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideDatabase;
@@ -37,6 +38,11 @@ public class BLASTNCommand extends BDBMCommand {
 			"Output name", "output", "Output name", 
 			false, true
 		);
+	public static final DefaultValueBooleanOption OPTION_KEEP_SINGLE_SEQUENCE_FILES = 
+		new DefaultValueBooleanOption(
+			"Keep single sequences", "keep_seqs", "Keep single sequence file", 
+			false
+		);
 	
 	public BLASTNCommand(BDBMController controller) {
 		super(controller);
@@ -64,12 +70,14 @@ public class BLASTNCommand extends BDBMCommand {
 		final BigDecimal expectedValue = parameters.getSingleValue(OPTION_EXPECTED_VALUE);
 		final Boolean filter = parameters.getSingleValue(OPTION_FILTER);
 		final String outputName = parameters.getSingleValue(OPTION_OUTPUT_NAME);
+		final boolean keepSingleSequences = parameters.getSingleValue(OPTION_KEEP_SINGLE_SEQUENCE_FILES);
 		
 		this.controller.blastn(
 			new DefaultNucleotideDatabase(database), 
 			new DefaultNucleotideSearchEntry(query.getParentFile(), false).getQuery(query.getName()), 
 			expectedValue, 
-			filter, 
+			filter,
+			keepSingleSequences,
 			outputName
 		);
 	}

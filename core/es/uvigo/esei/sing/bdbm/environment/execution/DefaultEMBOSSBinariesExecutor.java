@@ -13,7 +13,6 @@ import org.slf4j.Marker;
 import es.uvigo.esei.sing.bdbm.LogConfiguration;
 import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideORF;
 
 public class DefaultEMBOSSBinariesExecutor implements EMBOSSBinariesExecutor {
 	private final static Logger LOG = LoggerFactory.getLogger(DefaultEMBOSSBinariesExecutor.class);
@@ -51,7 +50,7 @@ public class DefaultEMBOSSBinariesExecutor implements EMBOSSBinariesExecutor {
 	@Override
 	public ExecutionResult executeGetORF(
 		NucleotideFasta fasta, 
-		NucleotideORF orf,
+		NucleotideFasta orf,
 		int minSize,
 		int maxSize
 	) throws InterruptedException, ExecutionException, IOException {

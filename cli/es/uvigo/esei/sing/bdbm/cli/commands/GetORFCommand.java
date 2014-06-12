@@ -4,6 +4,7 @@ import java.io.File;
 
 import es.uvigo.ei.sing.yacli.Parameters;
 import es.uvigo.ei.sing.yacli.StringOption;
+import es.uvigo.esei.sing.bdbm.cli.commands.converters.DefaultValueBooleanOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.IntegerOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
@@ -27,6 +28,11 @@ public class GetORFCommand extends BDBMCommand {
 		new StringOption(
 			"Output name", "output", "Output name", 
 			false, true
+		);
+	public static final DefaultValueBooleanOption OPTION_REMOVE_NEWLINES =
+		new DefaultValueBooleanOption(
+			"Remove new lines", "nonl", "Delete the new line characters from the sequences", 
+			false
 		);
 	
 	public GetORFCommand(BDBMController controller) {
@@ -54,12 +60,14 @@ public class GetORFCommand extends BDBMCommand {
 		final Integer minSize = parameters.getSingleValue(OPTION_MIN_SIZE);
 		final Integer maxSize = parameters.getSingleValue(OPTION_MAX_SIZE);
 		final String outputName = parameters.getSingleValue(OPTION_OUTPUT_NAME);
+		final Boolean noNewLine = parameters.getSingleValue(OPTION_REMOVE_NEWLINES);
 		
 		this.controller.getORF(
 			new DefaultNucleotideFasta(fastaFile),
 			minSize,
 			maxSize,
-			outputName
+			outputName,
+			noNewLine
 		);
 	}
 }

@@ -6,8 +6,10 @@ import es.uvigo.ei.sing.yacli.SingleParameterValue;
 
 public class BooleanOption extends Option<Boolean> {
 	public BooleanOption(
-		String paramName, String shortName,
-		String description, boolean optional,
+		String paramName,
+		String shortName,
+		String description,
+		boolean optional,
 		boolean requiresValue,
 		boolean isMultiple
 	) {
@@ -15,8 +17,11 @@ public class BooleanOption extends Option<Boolean> {
 	}
 
 	public BooleanOption(
-		String paramName, String shortName,
-		String description, boolean optional, boolean requiresValue
+		String paramName,
+		String shortName,
+		String description,
+		boolean optional,
+		boolean requiresValue
 	) {
 		super(paramName, shortName, description, optional, requiresValue, new BooleanConverter());
 	}

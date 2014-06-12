@@ -7,37 +7,12 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry.Query;
 
 abstract class EntityValidator<T> {
 	public abstract boolean validate(T entity)
 	throws EntityValidationException;
-	
-	public static EntityValidator<NucleotideORF> orf() {
-		return new EntityValidator<NucleotideORF>() {
-			@Override
-			public boolean validate(NucleotideORF orf)
-			throws EntityValidationException {
-				if (!Boolean.valueOf(System.getProperty("entities.validate", "true"))) {
-					return true;
-				} else if (orf.getFile().isFile()) {
-					try {
-						if (orf.getType().isValidFastaFile(orf.getFile())) {
-							return true;
-						} else {
-							throw new EntityValidationException("Invalid orf file: " + orf.getFile(), orf);
-						}
-					} catch (IllegalArgumentException e) {
-						throw new EntityValidationException("Unable to load ORF file: " + orf.getFile(), e, orf);
-					}
-				} else {
-					throw new EntityValidationException("ORF file doesn't exists or isn't a file: "  + orf.getFile());
-				}			
-			}
-		};
-	}
 	
 	public static EntityValidator<Fasta> fasta() {
 		return new EntityValidator<Fasta>() {

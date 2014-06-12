@@ -9,7 +9,6 @@ public class DefaultBDBMRepositoryManager implements BDBMRepositoryManager {
 	private final ExportRepositoryManager exportManager;
 	private final FastaRepositoryManager fastaManager;
 	private final SearchEntryRepositoryManager searchEntryManager;
-	private final ORFRepositoryManager orfRepositoryManager;
 	
 	private final RepositoryManager<?>[] repositories;
 	
@@ -19,7 +18,6 @@ public class DefaultBDBMRepositoryManager implements BDBMRepositoryManager {
 			this.exportManager = new DefaultExportRepositoryManager(),
 			this.fastaManager = new DefaultFastaRespositoryManager(),
 			this.searchEntryManager = new DefaultSearchEntryRepositoryManager(),
-			this.orfRepositoryManager = new DefaultORFRespositoryManager()
 		};
 	}
 	
@@ -54,11 +52,6 @@ public class DefaultBDBMRepositoryManager implements BDBMRepositoryManager {
 	@Override
 	public SearchEntryRepositoryManager searchEntry() {
 		return this.searchEntryManager;
-	}
-	
-	@Override
-	public ORFRepositoryManager orf() {
-		return this.orfRepositoryManager;
 	}
 	
 	@Override

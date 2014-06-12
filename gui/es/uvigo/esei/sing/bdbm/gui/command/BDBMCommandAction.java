@@ -124,17 +124,6 @@ public class BDBMCommandAction extends BDBMAction {
 		}
 		
 		try {
-//			final CommandDialog dialog;
-//			if (this.defaultParameters == null) {
-//				dialog = this.commandDialog.getConstructor(
-//					DefaultBDBMController.class, Command.class
-//				).newInstance(this.getController(), this.command);
-//			} else {
-//				dialog = this.commandDialog.getConstructor(
-//					DefaultBDBMController.class, Command.class, Parameters.class
-//				).newInstance(this.getController(), this.command, this.defaultParameters);
-//			}
-			
 			final CommandDialog dialog = this.commandDialog.getConstructor(
 				paramClasses.toArray(new Class<?>[paramClasses.size()])
 			).newInstance(paramValues.toArray(new Object[paramValues.size()]));
