@@ -132,13 +132,20 @@ public abstract class AbstractExport extends AbstractSequenceEntity implements E
 		}
 		
 		@Override
-		public File[] getSequenceFiles() {
+		public synchronized File[] getSequenceFiles() {
 			return this.getBaseFile().listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
 					return name.toLowerCase().endsWith(".txt");
 				}
 			});
+		}
+		
+		@Override
+		public synchronized void deleteSequenceFiles() {
+			for (File sequenceFile : this.getSequenceFiles()) {
+				sequenceFile.delete();
+			}
 		}
 
 		@Override

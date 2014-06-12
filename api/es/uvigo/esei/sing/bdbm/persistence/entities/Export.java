@@ -22,5 +22,6 @@ public interface Export extends SequenceEntity, Comparable<Export> {
 		public File getOutFile();
 		public File[] getSequenceFiles();
 		public File getSummaryFastaFile();
+		public void deleteSequenceFiles();
 	}
 }

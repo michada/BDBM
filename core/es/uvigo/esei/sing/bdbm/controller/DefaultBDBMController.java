@@ -278,6 +278,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue, 
 		boolean filter, 
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -289,7 +290,7 @@ public class DefaultBDBMController implements BDBMController {
 			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile)) {
 				this.blastBinariesExecutor.executeBlastN(database, queryFile, export, expectedValue, filter, outputName);
 				
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -308,6 +309,7 @@ public class DefaultBDBMController implements BDBMController {
 		NucleotideQuery query, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -318,7 +320,7 @@ public class DefaultBDBMController implements BDBMController {
 		try {
 			this.blastBinariesExecutor.executeBlastN(database, query, export, expectedValue, filter, outputName);
 			
-			generateExportEntry(database, outputName, export);
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -334,6 +336,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue, 
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -347,7 +350,7 @@ public class DefaultBDBMController implements BDBMController {
 					database, queryFile, export, expectedValue, filter, outputName
 				);
 
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -366,6 +369,7 @@ public class DefaultBDBMController implements BDBMController {
 		ProteinQuery query, 
 		BigDecimal expectedValue, 
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -378,7 +382,7 @@ public class DefaultBDBMController implements BDBMController {
 				database, query, export, expectedValue, filter, outputName
 			);
 
-			generateExportEntry(database, outputName, export);
+			this.generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -394,6 +398,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -405,7 +410,7 @@ public class DefaultBDBMController implements BDBMController {
 			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile)) {
 				this.blastBinariesExecutor.executeTBlastX(database, queryFile, export, expectedValue, filter, outputName);
 				
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -424,6 +429,7 @@ public class DefaultBDBMController implements BDBMController {
 		NucleotideQuery query, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -434,7 +440,7 @@ public class DefaultBDBMController implements BDBMController {
 		try {
 			this.blastBinariesExecutor.executeTBlastX(database, query, export, expectedValue, filter, outputName);
 			
-			generateExportEntry(database, outputName, export);
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -450,6 +456,7 @@ public class DefaultBDBMController implements BDBMController {
 		File queryFile, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -461,7 +468,7 @@ public class DefaultBDBMController implements BDBMController {
 			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.PROTEIN, queryFile)) {
 				this.blastBinariesExecutor.executeTBlastN(database, queryFile, export, expectedValue, filter, outputName);
 				
-				generateExportEntry(database, outputName, export);
+				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
 				return export;
 			} else {
@@ -480,6 +487,7 @@ public class DefaultBDBMController implements BDBMController {
 		ProteinQuery query, 
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final ExportRepositoryManager exportManager = this.repositoryManager.export();
@@ -490,7 +498,7 @@ public class DefaultBDBMController implements BDBMController {
 		try {
 			this.blastBinariesExecutor.executeTBlastN(database, query, export, expectedValue, filter, outputName);
 			
-			generateExportEntry(database, outputName, export);
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 			
 			return export;
 		} finally {
@@ -503,7 +511,8 @@ public class DefaultBDBMController implements BDBMController {
 	private void generateExportEntry(
 		final Database database,
 		final String outputName, 
-		final Export export
+		final Export export,
+		final boolean keepSingleSequenceFiles
 	) throws InterruptedException, ExecutionException, IOException {
 		final ExportEntry exportEntry = export.getExportEntry(outputName);
 		
@@ -526,6 +535,9 @@ public class DefaultBDBMController implements BDBMController {
 					true
 				);
 			}
+			
+			if (!keepSingleSequenceFiles)
+				exportEntry.deleteSequenceFiles();
 		}
 	}
 	

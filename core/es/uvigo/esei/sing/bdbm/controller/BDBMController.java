@@ -65,7 +65,8 @@ public interface BDBMController {
 		NucleotideDatabase database,
 		NucleotideQuery query,
 		BigDecimal expectedValue, 
-		boolean filter, 
+		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 	
@@ -74,6 +75,7 @@ public interface BDBMController {
 		File queryFile,
 		BigDecimal expectedValue, 
 		boolean filter, 
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 
@@ -81,6 +83,7 @@ public interface BDBMController {
 		ProteinDatabase database,
 		ProteinQuery query, 
 		BigDecimal expectedValue, 
+		boolean keepSingleSequenceFiles,
 		boolean filter,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
@@ -90,6 +93,7 @@ public interface BDBMController {
 		File queryFile,
 		BigDecimal expectedValue, 
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 
@@ -98,6 +102,7 @@ public interface BDBMController {
 		NucleotideQuery query,
 		BigDecimal expectedValue, 
 		boolean filter, 
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 
@@ -106,6 +111,7 @@ public interface BDBMController {
 		File queryFile,
 		BigDecimal expectedValue, 
 		boolean filter, 
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 
@@ -114,6 +120,7 @@ public interface BDBMController {
 		ProteinQuery query,
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 
@@ -122,6 +129,7 @@ public interface BDBMController {
 		File queryFile,
 		BigDecimal expectedValue,
 		boolean filter,
+		boolean keepSingleSequenceFiles,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 
