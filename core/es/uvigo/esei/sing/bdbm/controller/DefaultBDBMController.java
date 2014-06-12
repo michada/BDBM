@@ -16,7 +16,6 @@ import es.uvigo.esei.sing.bdbm.persistence.DatabaseRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
 import es.uvigo.esei.sing.bdbm.persistence.ExportRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.FastaRepositoryManager;
-import es.uvigo.esei.sing.bdbm.persistence.ORFRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.SearchEntryRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
@@ -25,7 +24,6 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideExport;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideSearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideSearchEntry.NucleotideQuery;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinDatabase;
@@ -80,8 +78,6 @@ public class DefaultBDBMController implements BDBMController {
 			return this.repositoryManager.searchEntry().exists((SearchEntry) entity);
 		} else if (entity instanceof Export) {
 			return this.repositoryManager.export().exists((Export) entity);
-		} else if (entity instanceof NucleotideORF) {
-			return this.repositoryManager.orf().exists((NucleotideORF) entity);
 		} else {
 			return false;
 		}
@@ -97,8 +93,6 @@ public class DefaultBDBMController implements BDBMController {
 			return this.delete((SearchEntry) entity);
 		} else if (entity instanceof Export) {
 			return this.delete((Export) entity);
-		} else if (entity instanceof NucleotideORF) {
-			return this.delete((NucleotideORF) entity);
 		} else {
 			return false;
 		}
@@ -122,11 +116,6 @@ public class DefaultBDBMController implements BDBMController {
 	@Override
 	public boolean delete(Export export) throws IOException {
 		return this.repositoryManager.export().delete(export);
-	}
-	
-	@Override
-	public boolean delete(NucleotideORF orf) throws IOException {
-		return this.repositoryManager.orf().delete(orf);
 	}
 	
 	@Override
@@ -167,11 +156,6 @@ public class DefaultBDBMController implements BDBMController {
 	@Override
 	public NucleotideExport[] listNucleotideExports() {
 		return this.repositoryManager.export().listNucleotide();
-	}
-	
-	@Override
-	public NucleotideORF[] listNucleotideORFs() {
-		return this.repositoryManager.orf().listNucleotide();
 	}
 	
 	@Override
@@ -543,16 +527,16 @@ public class DefaultBDBMController implements BDBMController {
 	}
 	
 	@Override
-	public NucleotideORF getORF(
+	public NucleotideFasta getORF(
 		NucleotideFasta fasta,
 		int minSize,
 		int maxSize,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
-		final ORFRepositoryManager orfManager = this.repositoryManager.orf();
-		final NucleotideORF orf = orfManager.getNucleotide(outputName);
+		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
+		final NucleotideFasta orf = fastaManager.getNucleotide(outputName);
 		
-		if (orfManager.exists(orf)) {
+		if (fastaManager.exists(orf)) {
 			throw new IllegalArgumentException("ORF already exists: " + outputName);
 		} else {
 			try {
@@ -560,26 +544,24 @@ public class DefaultBDBMController implements BDBMController {
 				
 				return orf;
 			} finally {
-				if (!orfManager.exists(orf))
-					orfManager.delete(orf);
+				if (!fastaManager.exists(orf))
+					fastaManager.delete(orf);
 			}
 		}
 	}
 
-	@Override
-	public Fasta convertOrfToFasta(NucleotideORF orf, String fastaName)
-		throws EntityAlreadyExistsException, IOException {
-		final ORFRepositoryManager orfManager = this.repositoryManager.orf();
-		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
-		
-		if (orfManager.exists(orf)) {
-			final Fasta fasta = fastaManager.create(orf.getType(), fastaName);
-			
-			FileUtils.copyFile(orf.getFile(), fasta.getFile());
-			
-			return fasta;
-		} else {
-			throw new IOException("Unknown ORF: " + orf);
-		}
-	}
+//	private Fasta convertOrfToFasta(NucleotideFasta orf, String fastaName)
+//		throws EntityAlreadyExistsException, IOException {
+//		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
+//		
+//		if (fastaManager.exists(orf)) {
+//			final Fasta fasta = fastaManager.create(orf.getType(), fastaName);
+//			
+//			FileUtils.copyFile(orf.getFile(), fasta.getFile());
+//			
+//			return fasta;
+//		} else {
+//			throw new IOException("Unknown ORF: " + orf);
+//		}
+//	}
 }

@@ -12,7 +12,6 @@ import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.ORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
@@ -25,7 +24,6 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 	private final DefaultMutableTreeNode tnDatabase;
 	private final DefaultMutableTreeNode tnSearchEntry;
 	private final DefaultMutableTreeNode tnExport;
-	private final DefaultMutableTreeNode tnORF;
 	
 	public RepositoryTreeModel(
 		SequenceType sequenceType,
@@ -48,20 +46,9 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		this.repositoryManager.searchEntry().addRepositoryListener(
 			new SynchronizationRepositoryListener(this, sequenceType, this.tnSearchEntry)
 		);
-	
 		this.repositoryManager.export().addRepositoryListener(
 			new SynchronizationRepositoryListener(this, sequenceType, this.tnExport)
 		);
-		
-		if (sequenceType == SequenceType.NUCLEOTIDE) {
-			this.tnORF = (DefaultMutableTreeNode) this.getChild(this.getRoot(), 4);
-			
-			this.repositoryManager.orf().addRepositoryListener(
-				new SynchronizationRepositoryListener(this, sequenceType, this.tnORF)
-			);
-		} else {
-			this.tnORF = null;
-		}
 	}
 	
 	void insertNode(DefaultMutableTreeNode parentNode, DefaultMutableTreeNode child, int childIndex) {
@@ -134,12 +121,6 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 			repositoryManager.export().list(sequenceType)
 		));
 		
-		if (sequenceType == SequenceType.NUCLEOTIDE) {
-			root.add(createORF(
-				repositoryManager.orf().list(sequenceType)
-			));
-		}
-		
 		return root;
 	}
 
@@ -182,16 +163,6 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		
 		return root;
 	}
-	
-	private static MutableTreeNode createORF(ORF[] orfs) {
-		final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Open Reading Frames");
-		
-		for (ORF orf : orfs) {
-			root.add(createORFNode(orf));
-		}
-		
-		return root;
-	}
 
 	static DefaultMutableTreeNode createSequenceEntityNode(SequenceEntity entity) 
 	throws IllegalArgumentException {
@@ -203,8 +174,6 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 			return createSearchEntryNode((SearchEntry) entity);
 		} else if (entity instanceof Export) {
 			return createExportNode((Export) entity);
-		} else if (entity instanceof ORF) {
-			return createORFNode((ORF) entity);
 		} else {
 			throw new IllegalArgumentException("Unknown entity type");
 		}
@@ -267,10 +236,6 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 	
 	static DefaultMutableTreeNode createExportEntrySummaryFileNode(File exportEntryFile) {
 		return new TextFileMutableTreeObject(exportEntryFile, RepositoryTreeRenderer.ICON_EXPORT);
-	}
-	
-	private static DefaultMutableTreeNode createORFNode(ORF orf) {
-		return new TextFileMutableTreeObject(orf, orf.getFile(), RepositoryTreeRenderer.ICON_ORF);
 	}
 	
 	public static class TextFileMutableTreeObject extends DefaultMutableTreeNode {

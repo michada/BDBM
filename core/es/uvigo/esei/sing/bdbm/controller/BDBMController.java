@@ -16,7 +16,6 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideExport;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideSearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideSearchEntry.NucleotideQuery;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinDatabase;
@@ -39,7 +38,6 @@ public interface BDBMController {
 	public abstract boolean delete(Fasta fasta) throws IOException;
 	public abstract boolean delete(SearchEntry search) throws IOException;
 	public abstract boolean delete(Export export) throws IOException;
-	public abstract boolean delete(NucleotideORF orf) throws IOException;
 
 	public abstract ProteinDatabase[] listProteinDatabases();
 	public abstract ProteinFasta[] listProteinFastas();
@@ -50,7 +48,6 @@ public interface BDBMController {
 	public abstract NucleotideFasta[] listNucleotideFastas();
 	public abstract NucleotideSearchEntry[] listNucleotideSearchEntries();
 	public abstract NucleotideExport[] listNucleotideExports();
-	public abstract NucleotideORF[] listNucleotideORFs();
 
 	public abstract Fasta importFasta(SequenceType sequenceType, File file)
 		throws EntityAlreadyExistsException, IOException;
@@ -63,9 +60,6 @@ public interface BDBMController {
 
 	public abstract SearchEntry retrieveSearchEntry(Database database, String accession)
 		throws InterruptedException, ExecutionException, IOException;
-	
-	public abstract Fasta convertOrfToFasta(NucleotideORF orf, String fastaName)
-		throws EntityAlreadyExistsException, IOException, InterruptedException, ExecutionException;
 
 	public abstract NucleotideExport blastn(
 		NucleotideDatabase database,
@@ -131,7 +125,7 @@ public interface BDBMController {
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 
-	public abstract NucleotideORF getORF(
+	public abstract NucleotideFasta getORF(
 		NucleotideFasta fasta, 
 		int minSize, int maxSize, 
 		String outputName

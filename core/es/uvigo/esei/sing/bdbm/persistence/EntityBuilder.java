@@ -9,10 +9,8 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.AbstractExport;
 import es.uvigo.esei.sing.bdbm.persistence.entities.AbstractFasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.AbstractSearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
-import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
@@ -60,15 +58,6 @@ abstract class EntityBuilder<T extends SequenceEntity> {
 			@Override
 			public Fasta create(SequenceType sequenceType, File file) {
 				return AbstractFasta.newFasta(sequenceType, file);
-			}
-		};
-	}
-	
-	public final static EntityBuilder<NucleotideORF> orf() {
-		return new EntityBuilder<NucleotideORF>() {
-			@Override
-			public NucleotideORF create(SequenceType sequenceType, File file) {
-				return new DefaultNucleotideORF(file);
 			}
 		};
 	}

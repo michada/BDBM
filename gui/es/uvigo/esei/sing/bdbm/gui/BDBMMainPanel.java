@@ -39,7 +39,6 @@ import es.uvigo.esei.sing.bdbm.LogConfiguration;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTDBAliasToolCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTNCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTPCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ConvertOrfToFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.ImportFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
@@ -53,7 +52,6 @@ import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTPCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ConvertOrfToFastaCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalBLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalBLASTPCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTNCommandDialog;
@@ -225,12 +223,6 @@ public class BDBMMainPanel extends JPanel {
 			new GetORFCommand(bdbmController),
 			GetORFCommandDialog.class
 		));
-		menuOperations.add(new BDBMCommandAction(
-			bdbmController,
-			new ConvertOrfToFastaCommand(bdbmController),
-			ConvertOrfToFastaCommandDialog.class
-		));
-		
 		
 		final JMenu menuBlast = new JMenu("BLAST");
 		menuBlast.add(new BDBMCommandAction(

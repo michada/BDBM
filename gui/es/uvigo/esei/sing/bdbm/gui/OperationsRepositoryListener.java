@@ -30,7 +30,6 @@ import es.uvigo.ei.sing.yacli.ParameterValue;
 import es.uvigo.ei.sing.yacli.Parameters;
 import es.uvigo.ei.sing.yacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTDBAliasToolCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ConvertOrfToFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
@@ -40,7 +39,6 @@ import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ConvertOrfToFastaCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
@@ -48,7 +46,6 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.ORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
@@ -224,21 +221,6 @@ public class OperationsRepositoryListener extends MouseAdapter {
 						this.showPopupMenu(
 							"Export", "Export", tree, export, 
 							e.getX(), e.getY()
-						);
-					} else if (node.getUserObject() instanceof ORF) {
-						final ORF orf  = (ORF) node.getUserObject();
-						
-						this.showPopupMenu(
-							"Open Reading Frame", "Open Reading Frame", tree, orf, 
-							e.getX(), e.getY(),
-							this.createBDBMCommandAction(
-								ConvertOrfToFastaCommand.class, 
-								ConvertOrfToFastaCommandDialog.class, 
-								singletonParameters(
-									ConvertOrfToFastaCommand.OPTION_ORF_FILE, 
-									orf.getFile().getAbsolutePath()
-								)
-							)
 						);
 					}
 				}

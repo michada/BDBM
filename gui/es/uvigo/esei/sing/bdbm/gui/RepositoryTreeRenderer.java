@@ -10,7 +10,6 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
-import es.uvigo.esei.sing.bdbm.persistence.entities.ORF;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
 
 class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
@@ -26,8 +25,6 @@ class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
 		new ImageIcon(RepositoryTreeRenderer.class.getResource("images/search-entry.png"));
 	final static ImageIcon ICON_EXPORT = 
 		new ImageIcon(RepositoryTreeRenderer.class.getResource("images/export.png"));
-	final static ImageIcon ICON_ORF = 
-		new ImageIcon(RepositoryTreeRenderer.class.getResource("images/orf.png"));
 
 	@Override
 	public Component getTreeCellRendererComponent(
@@ -52,8 +49,6 @@ class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
 			} else if (nodeValue instanceof Export) {
 				this.setOpenIcon(ICON_EXPORT);
 				this.setClosedIcon(ICON_EXPORT);
-			} else if (nodeValue instanceof ORF) {
-				this.setLeafIcon(ICON_ORF);
 			} else {
 				this.setLeafIcon(this.getDefaultLeafIcon());
 				this.setOpenIcon(this.getDefaultOpenIcon());
