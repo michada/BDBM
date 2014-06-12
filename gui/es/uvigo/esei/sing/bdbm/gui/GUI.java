@@ -23,6 +23,7 @@ import es.uvigo.esei.sing.bdbm.environment.DefaultBDBMEnvironment;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.BinaryCheckException;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.paths.RepositoryPaths;
 import es.uvigo.esei.sing.bdbm.gui.configuration.PathsConfiguration;
 import es.uvigo.esei.sing.bdbm.persistence.DefaultBDBMRepositoryManager;
@@ -169,6 +170,8 @@ public class GUI implements Observer {
 				System.exit(11);
 			} else if (!checkEmbossBinaries(env, splash)) {
 				System.exit(12);
+			} else if (!checkNcbiBinaries(env, splash)) {
+				System.exit(13);
 			} else {
 				gui.initGUI();
 				gui.showMainFrame();
@@ -205,7 +208,7 @@ public class GUI implements Observer {
 	}
 
 	private static boolean checkEmbossBinaries(final DefaultBDBMEnvironment env, final Component parent) throws IOException {
-		final JFileChooser chooser = new JFileChooser(env.getEmbossBinaries().getBaseDirectory());
+		final JFileChooser chooser = new JFileChooser(env.getEMBOSSBinaries().getBaseDirectory());
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setMultiSelectionEnabled(false);
 		
@@ -215,7 +218,7 @@ public class GUI implements Observer {
 			) {
 				final File EmbossPath = chooser.getSelectedFile();
 				try {
-					env.changeEmbossPath(EmbossPath, false);
+					env.changeEMBOSSPath(EmbossPath, false);
 				} catch (IOException ioe) {
 					showIOError(parent, ioe);
 				}
@@ -231,7 +234,7 @@ public class GUI implements Observer {
 
 	private static boolean checkEmbossPath(final BDBMEnvironment env) {
 		try {
-			EMBOSSBinaryToolsFactoryBuilder.newFactory(env.getEmbossBinaries());
+			EMBOSSBinaryToolsFactoryBuilder.newFactory(env.getEMBOSSBinaries());
 			
 			return true;
 		} catch (BinaryCheckException bbce) {
@@ -244,14 +247,14 @@ public class GUI implements Observer {
 			parent, 
 			"Missing or invalid EMBOSS binaries path. Do you want to select a new path?\n"
 			+ "(If you select 'No', program will exit)",
-			"Invalid Emboss",
+			"Invalid EMBOSS",
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.ERROR_MESSAGE
 		) == JOptionPane.YES_OPTION;
 	}
 
 	private static boolean checkBlastBinaries(final DefaultBDBMEnvironment env, final Component parent) throws IOException {
-		final JFileChooser chooser = new JFileChooser(env.getBlastBinaries().getBaseDirectory());
+		final JFileChooser chooser = new JFileChooser(env.getBLASTBinaries().getBaseDirectory());
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setMultiSelectionEnabled(false);
 		
@@ -261,7 +264,7 @@ public class GUI implements Observer {
 			) {
 				final File blastPath = chooser.getSelectedFile();
 				try {
-					env.changeBlastPath(blastPath, false);
+					env.changeBLASTPath(blastPath, false);
 				} catch (IOException ioe) {
 					showIOError(parent, ioe);
 				}
@@ -277,7 +280,7 @@ public class GUI implements Observer {
 
 	private static boolean checkBlastPath(final BDBMEnvironment env) {
 		try {
-			BLASTBinaryToolsFactoryBuilder.newFactory(env.getBlastBinaries());
+			BLASTBinaryToolsFactoryBuilder.newFactory(env.getBLASTBinaries());
 			
 			return true;
 		} catch (BinaryCheckException bbce) {
@@ -291,6 +294,53 @@ public class GUI implements Observer {
 			"Missing or invalid BLAST binaries path. Do you want to select a new path?\n"
 			+ "(If you select 'No', program will exit)",
 			"Invalid BLAST",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.ERROR_MESSAGE
+		) == JOptionPane.YES_OPTION;
+	}
+
+	private static boolean checkNcbiBinaries(DefaultBDBMEnvironment env, Component parent)
+	throws IOException {
+		final JFileChooser chooser = new JFileChooser(env.getNCBIBinaries().getBaseDirectory());
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setMultiSelectionEnabled(false);
+		
+		while (!checkNcbiPath(env)) {
+			if (askForNcbiPath(parent) && 
+				chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION
+			) {
+				final File ncbiPath = chooser.getSelectedFile();
+				try {
+					env.changeNCBIPath(ncbiPath, false);
+				} catch (IOException ioe) {
+					showIOError(parent, ioe);
+				}
+			} else {
+				return false;
+			}
+		}
+		
+		env.saveToProperties();
+		
+		return true;
+	}
+
+	private static boolean checkNcbiPath(final BDBMEnvironment env) {
+		try {
+			NCBIBinaryToolsFactoryBuilder.newFactory(env.getNCBIBinaries());
+			
+			return true;
+		} catch (BinaryCheckException bbce) {
+			return false;
+		}
+	}
+
+	private static boolean askForNcbiPath(final Component parent) {
+		return JOptionPane.showConfirmDialog(
+			parent, 
+			"Missing or invalid NCBI binaries path. Do you want to select a new path?\n"
+			+ "(If you select 'No', program will exit)",
+			"Invalid NCBI",
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.ERROR_MESSAGE
 		) == JOptionPane.YES_OPTION;

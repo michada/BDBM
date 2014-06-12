@@ -126,7 +126,7 @@ public class BDBM extends Observable {
 			
 			try {
 				blastFactory = BLASTBinaryToolsFactoryBuilder.newFactory(
-					this.getEnvironment().getBlastBinaries()
+					this.getEnvironment().getBLASTBinaries()
 				);
 			} catch (BinaryCheckException bce) {
 				throw new IllegalStateException("Invalid BLAST binaries", bce);
@@ -134,7 +134,7 @@ public class BDBM extends Observable {
 			
 			try {
 				embossFactory = EMBOSSBinaryToolsFactoryBuilder.newFactory(
-					this.getEnvironment().getEmbossBinaries()
+					this.getEnvironment().getEMBOSSBinaries()
 				);
 			} catch (BinaryCheckException bce) {
 				throw new IllegalStateException("Invalid EMBOSS binaries", bce);
