@@ -123,105 +123,107 @@ public class OperationsRepositoryListener extends MouseAdapter {
 				final JTree tree = (JTree) e.getSource();
 				
 				final TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-				tree.setSelectionPath(path);
-				
-				if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-					final DefaultMutableTreeNode node = 
-						(DefaultMutableTreeNode) path.getLastPathComponent();
+				if (path != null) {
+					tree.setSelectionPath(path);
 					
-					if (node.getUserObject() instanceof Fasta) {
-						final Fasta fasta = (Fasta) node.getUserObject();
+					if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
+						final DefaultMutableTreeNode node = 
+							(DefaultMutableTreeNode) path.getLastPathComponent();
 						
-						final Action[] actions;
-						if (fasta instanceof NucleotideFasta) {
-							actions = new Action[] {
-								this.createBDBMCommandAction(
-									MakeBLASTDBCommand.class, 
-									MakeBLASTDBCommandDialog.class,
-									new DefaultParameters(createEntityParams(
-										fasta,
-										MakeBLASTDBCommand.OPTION_DB_TYPE,
-										MakeBLASTDBCommand.OPTION_INPUT
-									))
-								),
-								this.createBDBMCommandAction(
-									GetORFCommand.class, 
-									GetORFCommandDialog.class, 
-									singletonParameters(
-										GetORFCommand.OPTION_FASTA, 
-										fasta.getFile().getAbsolutePath()
+						if (node.getUserObject() instanceof Fasta) {
+							final Fasta fasta = (Fasta) node.getUserObject();
+							
+							final Action[] actions;
+							if (fasta instanceof NucleotideFasta) {
+								actions = new Action[] {
+									this.createBDBMCommandAction(
+										MakeBLASTDBCommand.class, 
+										MakeBLASTDBCommandDialog.class,
+										new DefaultParameters(createEntityParams(
+											fasta,
+											MakeBLASTDBCommand.OPTION_DB_TYPE,
+											MakeBLASTDBCommand.OPTION_INPUT
+										))
+									),
+									this.createBDBMCommandAction(
+										GetORFCommand.class, 
+										GetORFCommandDialog.class, 
+										singletonParameters(
+											GetORFCommand.OPTION_FASTA, 
+											fasta.getFile().getAbsolutePath()
+										)
 									)
-								)
-							};
-						} else {
-							actions = new Action[] {
+								};
+							} else {
+								actions = new Action[] {
+									this.createBDBMCommandAction(
+										MakeBLASTDBCommand.class, 
+										MakeBLASTDBCommandDialog.class,
+										new DefaultParameters(createEntityParams(
+											fasta,
+											MakeBLASTDBCommand.OPTION_DB_TYPE,
+											MakeBLASTDBCommand.OPTION_INPUT
+										))
+									)
+								};
+							}
+							
+							this.showPopupMenu(
+								"Fasta", 
+								"Fasta", 
+								tree, 
+								fasta, 
+								e.getX(), 
+								e.getY(),
+								actions
+							);
+						} else if (node.getUserObject() instanceof Database) {
+							final Database database = (Database) node.getUserObject();
+							
+							final BDBMCommandAction retrieveCA;
+	
+							this.showPopupMenu(
+								"Database", 
+								"Database", 
+								tree, 
+								database, 
+								e.getX(), 
+								e.getY(), 
 								this.createBDBMCommandAction(
-									MakeBLASTDBCommand.class, 
-									MakeBLASTDBCommandDialog.class,
+									BLASTDBAliasToolCommand.class, 
+									BLASTDBAliasToolCommandDialog.class,
+									singletonParameters(
+										BLASTDBAliasToolCommand.OPTION_DATABASES, 
+										Arrays.asList(database.getBaseFile().getAbsolutePath())
+									)
+								),
+								retrieveCA = this.createBDBMCommandAction(
+									RetrieveSearchEntryCommand.class,
+									RetrieveSearchEntryCommandDialog.class,
 									new DefaultParameters(createEntityParams(
-										fasta,
-										MakeBLASTDBCommand.OPTION_DB_TYPE,
-										MakeBLASTDBCommand.OPTION_INPUT
+										database, 
+										RetrieveSearchEntryCommand.OPTION_DB_TYPE, 
+										RetrieveSearchEntryCommand.OPTION_DATABASE
 									))
 								)
-							};
+							);
+							
+							retrieveCA.addParamValue(boolean.class, this.controller.isAccessionInferEnabled());
+						} else if (node.getUserObject() instanceof SearchEntry) {
+							final SearchEntry searchEntry = (SearchEntry) node.getUserObject();
+							
+							this.showPopupMenu(
+								"Search Entry", "Search Entry", tree, searchEntry, 
+								e.getX(), e.getY()
+							);
+						} else if (node.getUserObject() instanceof Export) {
+							final Export export = (Export) node.getUserObject();
+							
+							this.showPopupMenu(
+								"Export", "Export", tree, export, 
+								e.getX(), e.getY()
+							);
 						}
-						
-						this.showPopupMenu(
-							"Fasta", 
-							"Fasta", 
-							tree, 
-							fasta, 
-							e.getX(), 
-							e.getY(),
-							actions
-						);
-					} else if (node.getUserObject() instanceof Database) {
-						final Database database = (Database) node.getUserObject();
-						
-						final BDBMCommandAction retrieveCA;
-
-						this.showPopupMenu(
-							"Database", 
-							"Database", 
-							tree, 
-							database, 
-							e.getX(), 
-							e.getY(), 
-							this.createBDBMCommandAction(
-								BLASTDBAliasToolCommand.class, 
-								BLASTDBAliasToolCommandDialog.class,
-								singletonParameters(
-									BLASTDBAliasToolCommand.OPTION_DATABASES, 
-									Arrays.asList(database.getBaseFile().getAbsolutePath())
-								)
-							),
-							retrieveCA = this.createBDBMCommandAction(
-								RetrieveSearchEntryCommand.class,
-								RetrieveSearchEntryCommandDialog.class,
-								new DefaultParameters(createEntityParams(
-									database, 
-									RetrieveSearchEntryCommand.OPTION_DB_TYPE, 
-									RetrieveSearchEntryCommand.OPTION_DATABASE
-								))
-							)
-						);
-						
-						retrieveCA.addParamValue(boolean.class, this.controller.isAccessionInferEnabled());
-					} else if (node.getUserObject() instanceof SearchEntry) {
-						final SearchEntry searchEntry = (SearchEntry) node.getUserObject();
-						
-						this.showPopupMenu(
-							"Search Entry", "Search Entry", tree, searchEntry, 
-							e.getX(), e.getY()
-						);
-					} else if (node.getUserObject() instanceof Export) {
-						final Export export = (Export) node.getUserObject();
-						
-						this.showPopupMenu(
-							"Export", "Export", tree, export, 
-							e.getX(), e.getY()
-						);
 					}
 				}
 			}

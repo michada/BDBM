@@ -1,7 +1,10 @@
 package es.uvigo.esei.sing.bdbm.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -531,7 +534,8 @@ public class DefaultBDBMController implements BDBMController {
 		NucleotideFasta fasta,
 		int minSize,
 		int maxSize,
-		String outputName
+		String outputName,
+		boolean noNewLines
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
 		final NucleotideFasta orf = fastaManager.getNucleotide(outputName);
@@ -541,6 +545,9 @@ public class DefaultBDBMController implements BDBMController {
 		} else {
 			try {
 				this.embossBinariesExecutor.executeGetORF(fasta, orf, minSize, maxSize);
+				if (noNewLines) {
+					removeNewLines(orf);
+				}
 				
 				return orf;
 			} finally {
@@ -548,6 +555,35 @@ public class DefaultBDBMController implements BDBMController {
 					fastaManager.delete(orf);
 			}
 		}
+	}
+	
+	@Override
+	public void removeNewLines(Fasta fasta) throws IOException {
+		final File tmpFile = File.createTempFile("bdbm", "fasta");
+		tmpFile.deleteOnExit();
+		
+		try (BufferedReader br = new BufferedReader(new FileReader(fasta.getFile()));
+			PrintWriter pw = new PrintWriter(tmpFile)
+		) {
+			String line;
+			
+			boolean first = true;
+			while ((line = br.readLine()) != null) {
+				if (line.startsWith(">")) {
+					if (first) {
+						pw.println();
+						first = false;
+					}
+					
+					pw.println(line);
+				} else {
+					pw.print(line);
+				}
+			}
+		}
+		
+		fasta.getFile().delete();
+		FileUtils.moveFile(tmpFile, fasta.getFile());
 	}
 
 //	private Fasta convertOrfToFasta(NucleotideFasta orf, String fastaName)

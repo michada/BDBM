@@ -128,6 +128,11 @@ public interface BDBMController {
 	public abstract NucleotideFasta getORF(
 		NucleotideFasta fasta, 
 		int minSize, int maxSize, 
-		String outputName
+		String outputName,
+		boolean noNewLine
+	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
+	
+	public abstract void removeNewLines(
+		Fasta fasta
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 }
