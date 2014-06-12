@@ -1,0 +1,87 @@
+<project name="BDBM - BLAST DataBase Manager">
+	<property name="project-name" value="BDBM"/>
+	<property name="version" value="0.6.0"/>
+	<property name="dir-dists" location="dists"/>
+	<property name="dir-jars" location="${dir-dists}${file.separator}jars"/>
+	<property name="dir-gui" location="${dir-dists}${file.separator}gui"/>
+	
+	<target name="jars">
+		<jar destfile="${dir-jars}${file.separator}api-${version}.jar" basedir="api"/>
+		<jar destfile="${dir-jars}${file.separator}core-${version}.jar" basedir="core"/>
+		<jar destfile="${dir-jars}${file.separator}gui-${version}.jar" basedir="gui"/>
+		<jar destfile="${dir-jars}${file.separator}cli-${version}.jar" basedir="cli"/>
+	</target>
+	
+	<target name="dist-gui" depends="jars">
+		<property name="dist-gui-dir" location="${dir-gui}${file.separator}${project-name}_v${version}"/>
+		<property name="dist-gui-lib" location="${dist-gui-dir}${file.separator}lib"/>
+		<property name="dist-jar-name" value="bdbm-${version}.jar"/>
+		<property name="dist-jar" location="${dist-gui-dir}${file.separator}${dist-jar-name}"/>
+		
+		<mkdir dir="${dist-gui-dir}"/>
+		<mkdir dir="${dist-gui-lib}"/>
+		
+		<copy todir="${dist-gui-lib}">
+			<fileset dir="${basedir}${file.separator}lib">
+				<include name="commons-compiler.jar"/>
+				<include name="commons-io-2.4.jar"/>
+				<include name="janino.jar"/>
+				<include name="jfontchooser-1.0.5.jar"/>
+				<include name="logback-classic-1.0.9.jar"/>
+				<include name="logback-core-1.0.9.jar"/>
+				<include name="slf4j-api-1.7.2.jar"/>
+			</fileset>
+			<fileset file="..${file.separator}yaCLI${file.separator}dists${file.separator}yaCLI.jar"/>
+		</copy>
+		<!--copy todir="${dist-gui-dir}">
+			<fileset file="bdbm.conf"/>
+		</copy-->
+		
+		<jar destfile="${dist-jar}">
+			<fileset dir="api_bin"/>
+			<fileset dir="core_bin"/>
+			<fileset dir="gui_bin"/>
+			<fileset dir="cli_bin"/>
+			
+			<manifest>
+				<attribute name="Class-Path" value="lib/commons-compiler.jar lib/commons-io-2.4.jar lib/janino.jar lib/jfontchooser-1.0.5.jar lib/logback-classic-1.0.9.jar lib/logback-core-1.0.9.jar lib/slf4j-api-1.7.2.jar lib/yaCLI.jar"/>
+				<attribute name="Main-Class" value="es.uvigo.esei.sing.bdbm.gui.GUI"/>
+			</manifest>
+		</jar>
+		
+		<echo file="${dist-gui-dir}${file.separator}run.sh">#!/bin/bash
+java -jar ${dist-jar-name}
+		</echo>
+		
+		<echo file="${dist-gui-dir}${file.separator}run.bat">@echo off
+java -jar ${dist-jar-name}
+		</echo>
+		
+		<echo file="${dist-gui-dir}${file.separator}run-no-validate.sh">#!/bin/bash
+java -Dentities.validate=false -jar ${dist-jar-name}
+		</echo>
+		
+		<echo file="${dist-gui-dir}${file.separator}run-no-validate.bat">@echo off
+java -Dentities.validate=false -jar ${dist-jar-name}
+		</echo>
+		
+		<echo file="${dist-gui-dir}${file.separator}bdbm.conf"># Absolute path to the folder to be used as repository
+repository.baseDir=
+
+# Absolute path to the folder that contains BLAST binaries
+# Comment or leave it blank if the BLAST binaries are in the system path.
+blast.binDir=
+
+# Absolute path to the folder that contains EMBOSS binaries.
+# Comment or leave it blank if the EMBOSS binaries are in the system path.
+emboss.binDir=
+
+# Enables or disables the accesion inference. If true, accesion field in
+# Retrieve Search Entry will be a combo box, otherwise it will be a text field
+retrievesearchentry.accession.infer=false
+</echo>
+		
+		<chmod perm="+x" file="${dist-gui-dir}${file.separator}run.sh"/>
+		<chmod perm="+x" file="${dist-gui-dir}${file.separator}run-no-validate.sh"/>
+	</target>
+</project>
