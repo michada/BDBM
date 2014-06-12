@@ -3,9 +3,11 @@ package es.uvigo.esei.sing.bdbm.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -21,6 +24,8 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+
+import org.apache.commons.io.FileUtils;
 
 import es.uvigo.ei.sing.yacli.Command;
 import es.uvigo.ei.sing.yacli.DefaultParameters;
@@ -36,6 +41,7 @@ import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
+import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeObject;
 import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
@@ -44,6 +50,7 @@ import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
+import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
@@ -220,9 +227,25 @@ public class OperationsRepositoryListener extends MouseAdapter {
 							final Export export = (Export) node.getUserObject();
 							
 							this.showPopupMenu(
-								"Export", "Export", tree, export, 
+								"Database Export", "Database Export", tree, export, 
 								e.getX(), e.getY()
 							);
+						} else if (node.getUserObject() instanceof ExportEntry) {
+							final ExportEntry entry = (ExportEntry) node.getUserObject();
+							
+							this.showPopupMenu(
+								"Database Export Entry", "Database Export Entry", tree, entry, 
+								e.getX(), e.getY()
+							);
+						} else if (node instanceof TextFileMutableTreeObject) {
+							final File file = ((TextFileMutableTreeObject) node).getFile();
+							
+							if (file.isFile()) {
+								this.showPopupMenu(
+									"File", tree, file, 
+									e.getX(), e.getY()
+								);
+							}
 						}
 					}
 				}
@@ -254,9 +277,12 @@ public class OperationsRepositoryListener extends MouseAdapter {
 			menu.addSeparator();
 		}
 
+		final Window parentWindow = SwingUtilities.getWindowAncestor(parent);
+		
+		menu.add(new ExportToAction(parentWindow, entity, entityName));
 		menu.add(new DeleteAction(
 			this.controller.getController(), 
-			SwingUtilities.getWindowAncestor(parent), 
+			parentWindow, 
 			entity, 
 			entityName
 		));
@@ -264,6 +290,83 @@ public class OperationsRepositoryListener extends MouseAdapter {
 		menu.show(parent, x, y);
 	}
 	
+	protected void showPopupMenu(
+		String title, 
+		Component parent, 
+		File file,
+		int x, int y
+	) {
+		final JPopupMenu menu = new JPopupMenu(title);
+		final JMenuItem itemTitle = new JMenuItem(title);
+		itemTitle.setEnabled(false);
+		itemTitle.setFont(itemTitle.getFont().deriveFont(Font.BOLD));
+		itemTitle.setForeground(Color.BLACK);
+		menu.add(itemTitle);
+		menu.addSeparator();
+		
+		final Window parentWindow = SwingUtilities.getWindowAncestor(parent);
+		
+		menu.add(new ExportToAction(parentWindow, file, "File"));
+		
+		menu.show(parent, x, y);
+	}
+	
+	protected static class ExportToAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		
+		private final File file;
+		private final String entityName;
+		private final Component parent;
+
+		private ExportToAction(Component parent, SequenceEntity entity, String entityName) {
+			this(parent, entity.getBaseFile(), entityName);
+		}
+
+		private ExportToAction(Component parent, File file, String entityName) {
+			super("Export " + entityName + " To...");
+			this.file = file;
+			this.entityName = entityName;
+			this.parent = parent;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			final JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle("Export " + this.entityName + " to...");
+			fileChooser.setMultiSelectionEnabled(false);
+			
+			if (this.file.isDirectory()) {
+				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			} else {
+				fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			}
+			
+			if (fileChooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+				try {
+					if (this.file.isDirectory()) {
+						FileUtils.copyDirectory(this.file, fileChooser.getSelectedFile());
+					} else {
+						FileUtils.copyFile(this.file, fileChooser.getSelectedFile());
+					}
+					
+					JOptionPane.showMessageDialog(
+						parent,
+						this.entityName + " was correctly exported to: " + this.file.getAbsolutePath() + ".",
+						"Export Finished",
+						JOptionPane.INFORMATION_MESSAGE
+					);
+				} catch (IOException ioe) {
+					JOptionPane.showMessageDialog(
+						parent,
+						"Error while exporting " + this.entityName + ": " + ioe.getMessage(),
+						"Export Error",
+						JOptionPane.ERROR_MESSAGE
+					);
+				}
+			}
+		}
+	}
+
 	protected static class DeleteAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
 		

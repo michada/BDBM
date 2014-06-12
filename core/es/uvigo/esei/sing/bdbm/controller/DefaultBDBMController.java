@@ -96,6 +96,8 @@ public class DefaultBDBMController implements BDBMController {
 			return this.delete((SearchEntry) entity);
 		} else if (entity instanceof Export) {
 			return this.delete((Export) entity);
+		} else if (entity instanceof ExportEntry) {
+			return this.delete((ExportEntry) entity);
 		} else {
 			return false;
 		}
@@ -119,6 +121,18 @@ public class DefaultBDBMController implements BDBMController {
 	@Override
 	public boolean delete(Export export) throws IOException {
 		return this.repositoryManager.export().delete(export);
+	}
+	
+	@Override
+	public boolean delete(ExportEntry exportEntry) throws IOException {
+		final Export export = exportEntry.getExport();
+		
+		export.deleteExportEntry(exportEntry);
+		if (export.listEntries().isEmpty()) {
+			return this.delete(export);
+		} else {
+			return true;
+		}
 	}
 	
 	@Override

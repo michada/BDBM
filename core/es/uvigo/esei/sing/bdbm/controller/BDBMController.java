@@ -12,6 +12,7 @@ import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
+import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideExport;
@@ -38,6 +39,7 @@ public interface BDBMController {
 	public abstract boolean delete(Fasta fasta) throws IOException;
 	public abstract boolean delete(SearchEntry search) throws IOException;
 	public abstract boolean delete(Export export) throws IOException;
+	public abstract boolean delete(ExportEntry exportEntry) throws IOException;
 
 	public abstract ProteinDatabase[] listProteinDatabases();
 	public abstract ProteinFasta[] listProteinFastas();

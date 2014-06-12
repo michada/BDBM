@@ -2,6 +2,9 @@ package es.uvigo.esei.sing.bdbm.persistence.entities;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
 
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.persistence.watcher.PollingRepositoryWatcher;
@@ -58,6 +61,16 @@ public abstract class AbstractExport extends AbstractSequenceEntity implements E
 		
 		return null;
 	}
+	
+	@Override
+	public void deleteExportEntry(ExportEntry entry)
+	throws IllegalArgumentException, IOException {
+		if (this.listEntries().contains(entry)) {
+			FileUtils.deleteDirectory(entry.getBaseFile());
+		} else {
+			throw new IllegalArgumentException("ExportEntry doesn't belongs to this Export");
+		}
+	}
 
 	@Override
 	public File getDirectory() {
@@ -100,10 +113,17 @@ public abstract class AbstractExport extends AbstractSequenceEntity implements E
 	}
 	
 	public class DefaultExportEntry implements ExportEntry {
+		private final Export export;
 		private final File baseFile;
 		
-		protected DefaultExportEntry(File baseFile) {
+		protected DefaultExportEntry(Export export, File baseFile) {
+			this.export = export;
 			this.baseFile = baseFile;
+		}
+		
+		@Override
+		public Export getExport() {
+			return this.export;
 		}
 		
 		@Override
