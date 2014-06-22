@@ -378,7 +378,7 @@ public class TextFileViewer extends JPanel {
 		}
 
 		private void changeLocation(long currentLocation) {
-			this.currentLocation = Math.min(currentLocation, fileSize - MAX_CHARS_LOADED);
+			this.currentLocation = Math.max(0, Math.min(currentLocation, fileSize - MAX_CHARS_LOADED));
 			
 			this.btnPrevious.setEnabled(this.currentLocation > 0);
 			this.btnNext.setEnabled(this.currentLocation < fileSize - MAX_CHARS_LOADED);
