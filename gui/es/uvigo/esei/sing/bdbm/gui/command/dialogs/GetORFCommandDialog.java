@@ -32,7 +32,7 @@ public class GetORFCommandDialog extends CommandDialog {
 	) {
 		super(controller, command, defaultParameters);
 		
-		this.setPreferredSize(new Dimension(400, 310));
+		this.setPreferredSize(new Dimension(400, 285));
 	}
 
 	@Override

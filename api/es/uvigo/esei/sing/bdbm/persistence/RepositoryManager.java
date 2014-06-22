@@ -9,7 +9,6 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 import es.uvigo.esei.sing.bdbm.persistence.watcher.RepositoryListener;
 
 public interface RepositoryManager<SE extends SequenceEntity> extends Repository {
-	
 	// Returns the corresponding entity. If the entity does not exists, it
 	// would be created
 	public abstract SE get(SequenceType sequenceType, String name)
@@ -24,7 +23,8 @@ public interface RepositoryManager<SE extends SequenceEntity> extends Repository
 	public abstract boolean delete(SE entity)
 	throws IOException;
 	
-	public boolean validateEntityPath(SequenceType type, File entityPath);
+	public void validateEntityPath(SequenceType type, File entityPath) throws EntityValidationException;
+	public void validate(SE entity) throws EntityValidationException;
 	
 	public abstract SE[] list(SequenceType sequenceType);
 	

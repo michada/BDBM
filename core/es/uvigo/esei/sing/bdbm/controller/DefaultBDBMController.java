@@ -14,9 +14,12 @@ import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
+import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionResult;
+import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.DatabaseRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
+import es.uvigo.esei.sing.bdbm.persistence.EntityValidationException;
 import es.uvigo.esei.sing.bdbm.persistence.ExportRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.FastaRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.SearchEntryRepositoryManager;
@@ -41,19 +44,22 @@ public class DefaultBDBMController implements BDBMController {
 	private BDBMRepositoryManager repositoryManager;
 	private BLASTBinariesExecutor blastBinariesExecutor;
 	private EMBOSSBinariesExecutor embossBinariesExecutor;
+	private NCBIBinariesExecutor ncbiBinariesExecutor;
 	
 	public DefaultBDBMController() {
-		this(null, null, null);
+		this(null, null, null, null);
 	}
 	
 	public DefaultBDBMController(
 		BDBMRepositoryManager repositoryManager, 
 		BLASTBinariesExecutor blastBinariesExecutor,
-		EMBOSSBinariesExecutor embossBinariesExecutor
+		EMBOSSBinariesExecutor embossBinariesExecutor,
+		NCBIBinariesExecutor ncbiBinariesExecutor
 	) {
 		this.repositoryManager = repositoryManager;
 		this.blastBinariesExecutor = blastBinariesExecutor;
 		this.embossBinariesExecutor = embossBinariesExecutor;
+		this.ncbiBinariesExecutor = ncbiBinariesExecutor;
 	}
 	
 	@Override
@@ -69,6 +75,11 @@ public class DefaultBDBMController implements BDBMController {
 	@Override
 	public void setEmbossBinariesExecutor(EMBOSSBinariesExecutor eBinariesExecutor) {
 		this.embossBinariesExecutor = eBinariesExecutor;
+	}
+	
+	@Override
+	public void setNcbiBinariesExecutor(NCBIBinariesExecutor ncbiBinariesExecutor) {
+		this.ncbiBinariesExecutor = ncbiBinariesExecutor;
 	}
 	
 	@Override
@@ -203,9 +214,18 @@ public class DefaultBDBMController implements BDBMController {
 			);
 		
 			try {
-				this.blastBinariesExecutor.executeMakeBlastDB(inputFasta.getFile(), database);
+				final ExecutionResult result = this.blastBinariesExecutor.executeMakeBlastDB(inputFasta.getFile(), database);
+				
+				if (result.getExitStatus() != 0) {
+					databaseManager.delete(database);
+					throw new ExecutionException(result.getExitStatus(), "Error executing makeBlastDB. Please, check error log.", "");
+				}
+				
+				databaseManager.validate(database);
 				
 				return database;
+			} catch (EntityValidationException e) {
+				throw new ExecutionException(0, "Error executing makeBlastDB. Please, check error log", "");
 			} finally {
 				if (!databaseManager.exists(database)) {
 					databaseManager.delete(database);
@@ -301,15 +321,15 @@ public class DefaultBDBMController implements BDBMController {
 		);
 		
 		try {
-			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile)) {
-				this.blastBinariesExecutor.executeBlastN(database, queryFile, export, expectedValue, filter, outputName);
-				
-				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
-				
-				return export;
-			} else {
-				throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
-			}
+			this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile);
+			
+			this.blastBinariesExecutor.executeBlastN(database, queryFile, export, expectedValue, filter, outputName);
+			
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
+			
+			return export;
+		} catch (EntityValidationException e) {
+			throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
 		} finally {
 			if (!exportManager.exists(export)) {
 				exportManager.delete(export);
@@ -359,17 +379,16 @@ public class DefaultBDBMController implements BDBMController {
 		);
 		
 		try {
-			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.PROTEIN, queryFile)) {
-				this.blastBinariesExecutor.executeBlastP(
-					database, queryFile, export, expectedValue, filter, outputName
-				);
+			this.repositoryManager.fasta().validateEntityPath(SequenceType.PROTEIN, queryFile);
+			this.blastBinariesExecutor.executeBlastP(
+				database, queryFile, export, expectedValue, filter, outputName
+			);
 
-				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
-				
-				return export;
-			} else {
-				throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
-			}
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
+			
+			return export;
+		} catch (EntityValidationException e) {
+			throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
 		} finally {
 			if (!exportManager.exists(export)) {
 				exportManager.delete(export);
@@ -421,15 +440,15 @@ public class DefaultBDBMController implements BDBMController {
 		);
 		
 		try {
-			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile)) {
-				this.blastBinariesExecutor.executeTBlastX(database, queryFile, export, expectedValue, filter, outputName);
+			this.repositoryManager.fasta().validateEntityPath(SequenceType.NUCLEOTIDE, queryFile);
+			
+			this.blastBinariesExecutor.executeTBlastX(database, queryFile, export, expectedValue, filter, outputName);
 				
-				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
 				
-				return export;
-			} else {
-				throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
-			}
+			return export;
+		} catch (EntityValidationException e) {
+			throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
 		} finally {
 			if (!exportManager.exists(export)) {
 				exportManager.delete(export);
@@ -479,15 +498,15 @@ public class DefaultBDBMController implements BDBMController {
 		);
 		
 		try {
-			if (this.repositoryManager.fasta().validateEntityPath(SequenceType.PROTEIN, queryFile)) {
-				this.blastBinariesExecutor.executeTBlastN(database, queryFile, export, expectedValue, filter, outputName);
-				
-				generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
-				
-				return export;
-			} else {
-				throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
-			}
+			this.repositoryManager.fasta().validateEntityPath(SequenceType.PROTEIN, queryFile);
+			
+			this.blastBinariesExecutor.executeTBlastN(database, queryFile, export, expectedValue, filter, outputName);
+			
+			generateExportEntry(database, outputName, export, keepSingleSequenceFiles);
+			
+			return export;
+		} catch (EntityValidationException e) {
+			throw new IOException("Invalid query file: " + queryFile.getAbsolutePath());
 		} finally {
 			if (!exportManager.exists(export)) {
 				exportManager.delete(export);
@@ -612,6 +631,33 @@ public class DefaultBDBMController implements BDBMController {
 		FileUtils.moveFile(tmpFile, fasta.getFile());
 	}
 
+	@Override
+	public NucleotideFasta mergeDB(
+		NucleotideFasta sourceFasta,
+		NucleotideDatabase sourceDB,
+		NucleotideFasta targetFasta,
+		NucleotideDatabase targetDB,
+		String outputName
+	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
+		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
+		final NucleotideFasta fasta = fastaManager.getNucleotide(outputName);
+		
+		if (fastaManager.exists(fasta)) {
+			throw new IllegalArgumentException("Fasta already exists: " + outputName);
+		} else {
+			final ExecutionResult result = this.ncbiBinariesExecutor.mergeDB(sourceFasta, sourceDB, targetFasta, targetDB, fasta);
+			
+			if (result.getExitStatus() != 0) {
+				if (fastaManager.exists(fasta))
+					fastaManager.delete(fasta);
+				
+				throw new ExecutionException(result.getExitStatus(), "Error executing mergeDB", "mergedb");
+			} else {
+				return fasta;
+			}
+		}
+	}
+	
 //	private Fasta convertOrfToFasta(NucleotideFasta orf, String fastaName)
 //		throws EntityAlreadyExistsException, IOException {
 //		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();

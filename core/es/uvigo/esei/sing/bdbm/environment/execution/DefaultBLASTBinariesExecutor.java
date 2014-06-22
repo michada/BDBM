@@ -61,7 +61,7 @@ implements BLASTBinariesExecutor {
 	public ExecutionResult executeMakeBlastDB(
 		File inputFasta, Database database
 	) throws InterruptedException, ExecutionException {
-		return DefaultBLASTBinariesExecutor.executeCommand(
+		return AbstractBinariesExecutor.executeCommand(
 			LOG,
 			this.binaries.getMakeBlastDB(),
 			"-in", inputFasta.getAbsolutePath(),
@@ -86,7 +86,7 @@ implements BLASTBinariesExecutor {
 		if (!dbFile.isDirectory() && !dbFile.mkdirs())
 			throw new IOException("Database directory could not be created: " + dbFile);
 		
-		return DefaultBLASTBinariesExecutor.executeCommand(
+		return AbstractBinariesExecutor.executeCommand(
 			LOG,
 			this.binaries.getBlastDBAliasTool(),
 			"-dblist", sbDBList.toString(),
@@ -100,7 +100,7 @@ implements BLASTBinariesExecutor {
 	public ExecutionResult executeBlastDBCMD(
 		Database database, SearchEntry searchEntry, String entry
 	) throws InterruptedException, ExecutionException {
-		return DefaultBLASTBinariesExecutor.executeCommand(
+		return AbstractBinariesExecutor.executeCommand(
 			LOG,
 			this.binaries.getBlastDBCmd(),
 			"-db", new File(database.getDirectory(), database.getName()).getAbsolutePath(),
@@ -114,7 +114,7 @@ implements BLASTBinariesExecutor {
 	public ExecutionResult executeBlastDBCMD(
 		Database database, ExportEntry exportEntry, String entry
 	) throws InterruptedException, ExecutionException {
-		return DefaultBLASTBinariesExecutor.executeCommand(
+		return AbstractBinariesExecutor.executeCommand(
 			LOG,
 			this.binaries.getBlastDBCmd(),
 			"-db", database.getDirectory().getAbsolutePath(),
@@ -141,7 +141,7 @@ implements BLASTBinariesExecutor {
 			throw new IOException("Output directory could not be created: " + outDirectory);
 		}
 		
-		return DefaultBLASTBinariesExecutor.executeCommand(
+		return AbstractBinariesExecutor.executeCommand(
 			LOG,
 			this.binaries.getBlast(blastType), 
 			"-query", queryFile.getAbsolutePath(),

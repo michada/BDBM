@@ -42,6 +42,7 @@ import es.uvigo.esei.sing.bdbm.cli.commands.BLASTPCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.ImportFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
+import es.uvigo.esei.sing.bdbm.cli.commands.MergeDBCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTNCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTXCommand;
@@ -58,6 +59,7 @@ import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTXCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
+import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MergeDBCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTXCommandDialog;
@@ -222,6 +224,14 @@ public class BDBMMainPanel extends JPanel {
 			bdbmController,
 			new GetORFCommand(bdbmController),
 			GetORFCommandDialog.class
+		));
+		
+		// NCBI Operations
+		menuOperations.addSeparator();
+		menuOperations.add(new BDBMCommandAction(
+			bdbmController,
+			new MergeDBCommand(bdbmController),
+			MergeDBCommandDialog.class
 		));
 		
 		final JMenu menuBlast = new JMenu("BLAST");

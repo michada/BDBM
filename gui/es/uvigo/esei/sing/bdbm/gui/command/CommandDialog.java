@@ -27,7 +27,6 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -36,9 +35,6 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import es.uvigo.ei.sing.yacli.Command;
 import es.uvigo.ei.sing.yacli.DefaultValuedOption;
@@ -50,8 +46,6 @@ import es.uvigo.esei.sing.bdbm.gui.command.input.InputComponentBuilder;
 
 public class CommandDialog extends JDialog {
 	private final static long serialVersionUID = 1L;
-	
-	private final static Logger LOG = LoggerFactory.getLogger(CommandDialog.class);
 	
 	private final static ImageIcon ICON_HELP = 
 		new ImageIcon(CommandDialog.class.getResource("images/help-about.png"));
@@ -183,17 +177,13 @@ public class CommandDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				CommandDialog.this.setVisible(false);
-				try {
-					CommandDialog.this.command.execute(parameterValues);
-				} catch (Exception ee) {
-					LOG.error("Error executing command", ee);
-					JOptionPane.showMessageDialog(
-						CommandDialog.this.getOwner(), 
-						"Error executing command: " + ee.getMessage(),
-						"Error",
-						JOptionPane.ERROR_MESSAGE
-					);
-				}
+				CommandDialog.this.dispose();
+				
+				final CommandExecutionDialog executionDialog = 
+					new CommandExecutionDialog(getOwner(), command, parameterValues);
+				executionDialog.pack();
+				executionDialog.setLocationRelativeTo(getOwner());
+				executionDialog.startExecution();
 			}
 		});
 		btnCancel.addActionListener(new ActionListener() {
@@ -330,7 +320,6 @@ public class CommandDialog extends JDialog {
 			});
 			listModel.addListDataListener(new ListDataListener() {
 				protected void updateOption() {
-//					receiver.setValue(option, CommandDialog.listModelToList(listModel));
 					CommandDialog.this.updateMultipleValues(option, listModel, receiver);
 					
 					btnClear.setEnabled(!listModel.isEmpty());

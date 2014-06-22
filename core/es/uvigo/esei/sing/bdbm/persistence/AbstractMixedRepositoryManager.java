@@ -32,7 +32,6 @@ public abstract class AbstractMixedRepositoryManager<
 	P extends ProteinSequenceEntity, 
 	N extends NucleotideSequenceEntity
 > implements MixedRepositoryManager<SE, P, N> {
-
 	protected RepositoryPaths repositoryPaths;
 	protected List<RepositoryListener> listeners;
 	
@@ -122,7 +121,9 @@ public abstract class AbstractMixedRepositoryManager<
 				// are filtered.
 				if (file.getParentFile().exists()) {
 					try {
-						AbstractMixedRepositoryManager.this.getEntityValidator().validate(entity);
+						if (Boolean.valueOf(System.getProperty("entities.validate", "true")))
+							AbstractMixedRepositoryManager.this.getEntityValidator().validate(entity);
+						
 						AbstractMixedRepositoryManager.this.fireRepositoryChanged(entity, file);
 					} catch (EntityValidationException eve) {
 						AbstractMixedRepositoryManager.this.fireRepositoryChanged(entity, RepositoryEvent.Type.INVALIDATED);
@@ -258,8 +259,9 @@ public abstract class AbstractMixedRepositoryManager<
 		for (int i = 0; i < files.length; i++) {
 			try {
 				final SE entity = builder.create(seqType, files[i]);
-				
-				validator.validate(entity);
+
+				if (Boolean.valueOf(System.getProperty("entities.validate", "true")))
+					validator.validate(entity);
 				
 				entities.add(entity);
 			} catch (EntityValidationException eve) {
@@ -284,20 +286,16 @@ public abstract class AbstractMixedRepositoryManager<
 	@Override
 	public SE create(SequenceType sequenceType, String name)
 	throws EntityAlreadyExistsException, IOException {
-		try {
-			if (this.exists(sequenceType, name)) {
-				throw new EntityAlreadyExistsException(null);
+		if (this.exists(sequenceType, name)) {
+			throw new EntityAlreadyExistsException(null);
+		} else {
+			final SE entity = this.createEntity(sequenceType, name);
+			
+			if (this.createEntityFiles(entity)) {
+				return entity;
 			} else {
-				final SE entity = this.createEntity(sequenceType, name);
-				
-				if (this.createEntityFiles(entity)) {
-					return entity;
-				} else {
-					throw new IOException("Entity could not be created");
-				}
+				throw new IOException("Entity could not be created");
 			}
-		} catch (EntityValidationException eve) {
-			throw new EntityAlreadyExistsException("Entity already exists", null);
 		}
 	}
 	
@@ -336,7 +334,9 @@ public abstract class AbstractMixedRepositoryManager<
 	
 	@Override
 	public boolean delete(SE entity) throws IOException, IllegalArgumentException {
-		if (entity.getBaseFile().isFile()) {
+		if (!entity.getBaseFile().exists()) {
+			return false;
+		} else if (entity.getBaseFile().isFile()) {
 			return entity.getBaseFile().delete();
 		} else if (entity.getBaseFile().isDirectory()) {
 			FileUtils.deleteDirectory(entity.getBaseFile());
@@ -347,11 +347,17 @@ public abstract class AbstractMixedRepositoryManager<
 	}
 	
 	@Override
-	public boolean validateEntityPath(SequenceType type, File entityPath) {
+	public void validateEntityPath(SequenceType type, File entityPath) throws EntityValidationException {
+		this.getEntityValidator().validate(
+			this.getEntityBuilder().create(type, entityPath)
+		);
+	}
+	
+	@Override
+	public void validate(SE entity) throws EntityValidationException {
 		final EntityValidator<SE> entityValidator = this.getEntityValidator();
-		final EntityBuilder<SE> entityBuilder = this.getEntityBuilder();
 		
-		return entityValidator.validate(entityBuilder.create(type, entityPath));
+		entityValidator.validate(entity);
 	}
 	
 	@Override
@@ -391,9 +397,14 @@ public abstract class AbstractMixedRepositoryManager<
 	
 	@Override
 	public boolean exists(SE entity) {
-		try {
-			return entity.getBaseFile().exists() && this.getEntityValidator().validate(entity);
-		} catch (EntityValidationException eve) {
+		if (entity.getBaseFile().exists()) {
+			try {
+				this.getEntityValidator().validate(entity);
+				return true;
+			} catch (EntityValidationException eve) {
+				return false;
+			}
+		} else {
 			return false;
 		}
 	}

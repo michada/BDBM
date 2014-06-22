@@ -39,6 +39,9 @@ public class BDBMManager {
 		this.controller.setEmbossBinariesExecutor(
 			createEMBOSSBinariesExecutor(this.getEnvironment().getEMBOSSBinaries())
 		);
+		this.controller.setNcbiBinariesExecutor(
+			createNCBIBinariesExecutor(this.getEnvironment().getNCBIBinaries())
+		);
 	}
 	
 	private BLASTBinariesExecutor createBLASTBinariesExecutor(BLASTBinaries binaries)

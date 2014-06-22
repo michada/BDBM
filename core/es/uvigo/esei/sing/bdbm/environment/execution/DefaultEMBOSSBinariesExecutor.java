@@ -46,7 +46,7 @@ implements EMBOSSBinariesExecutor {
 		int minSize,
 		int maxSize
 	) throws InterruptedException, ExecutionException, IOException {
-		return DefaultEMBOSSBinariesExecutor.executeCommand(
+		return AbstractBinariesExecutor.executeCommand(
 			LOG,
 			this.binaries.getGetORF(), 
 			"-snucleotide", fasta.getFile().getAbsolutePath(),

@@ -8,6 +8,7 @@ import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
+import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
@@ -31,6 +32,7 @@ public interface BDBMController {
 	public abstract void setRepositoryManager(BDBMRepositoryManager repositoryManager);
 	public abstract void setBlastBinariesExecutor(BLASTBinariesExecutor binariesExecutor);
 	public abstract void setEmbossBinariesExecutor(EMBOSSBinariesExecutor eBinariesExecutor);
+	public abstract void setNcbiBinariesExecutor(NCBIBinariesExecutor eBinariesExecutor);
 
 	public abstract boolean exists(SequenceEntity entity);
 
@@ -144,5 +146,13 @@ public interface BDBMController {
 	
 	public abstract void removeNewLines(
 		Fasta fasta
+	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
+	
+	public abstract NucleotideFasta mergeDB(
+		NucleotideFasta sourceFasta,
+		NucleotideDatabase sourceDB,
+		NucleotideFasta targetFasta,
+		NucleotideDatabase targetDB,
+		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 }
