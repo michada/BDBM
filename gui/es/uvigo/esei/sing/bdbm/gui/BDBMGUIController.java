@@ -36,7 +36,8 @@ public class BDBMGUIController extends Observable {
 		if (this.getEnvironment().changePaths(
 			configuration.getBaseRespository(), 
 			configuration.getBaseBLAST(),
-			configuration.getBaseEMBOSS()
+			configuration.getBaseEMBOSS(),
+			configuration.getBaseNCBI()
 		)) {
 			
 			this.setChanged();

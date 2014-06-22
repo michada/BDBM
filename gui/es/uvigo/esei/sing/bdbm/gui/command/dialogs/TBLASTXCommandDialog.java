@@ -39,7 +39,7 @@ public class TBLASTXCommandDialog extends CommandDialog {
 	) {
 		super(controller, command, defaultParameters);
 		
-		this.setPreferredSize(new Dimension(400, 310));
+		this.setPreferredSize(new Dimension(440, 340));
 	}
 
 	@Override
@@ -49,8 +49,8 @@ public class TBLASTXCommandDialog extends CommandDialog {
 	) {
 		if (option.equals(TBLASTXCommand.OPTION_DATABASE)) {
 			final JComboBox<NucleotideDatabase> cmbDatabases = new JComboBox<>(
-					this.controller.listNucleotideDatabases()
-				);
+				this.controller.listNucleotideDatabases()
+			);
 			final ActionListener alDatabases = new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {

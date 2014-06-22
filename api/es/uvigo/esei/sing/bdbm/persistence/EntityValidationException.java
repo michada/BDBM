@@ -1,6 +1,6 @@
 package es.uvigo.esei.sing.bdbm.persistence;
 
-public class EntityValidationException extends RuntimeException {
+public class EntityValidationException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	private final Object entity;

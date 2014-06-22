@@ -39,7 +39,7 @@ public class BLASTPCommandDialog extends CommandDialog {
 	) {
 		super(controller, command, defaultParameters);
 		
-		this.setPreferredSize(new Dimension(400, 310));
+		this.setPreferredSize(new Dimension(440, 340));
 	}
 
 	@Override

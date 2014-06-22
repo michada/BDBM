@@ -6,11 +6,13 @@ public class PathsConfiguration {
 	private final File baseRespository;
 	private final File baseBLAST;
 	private final File baseEMBOSS;
+	private final File baseNCBI;
 	
-	public PathsConfiguration(File baseRespository, File baseBLAST, File baseEMBOSS) {
+	public PathsConfiguration(File baseRespository, File baseBLAST, File baseEMBOSS, File baseNCBI) {
 		this.baseRespository = baseRespository;
 		this.baseBLAST = baseBLAST;
 		this.baseEMBOSS = baseEMBOSS;
+		this.baseNCBI = baseNCBI;
 	}
 	
 	public File getBaseRespository() {
@@ -23,5 +25,9 @@ public class PathsConfiguration {
 	
 	public File getBaseEMBOSS() {
 		return baseEMBOSS;
+	}
+	
+	public File getBaseNCBI() {
+		return baseNCBI;
 	}
 }

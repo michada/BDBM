@@ -39,7 +39,7 @@ public class BLASTNCommandDialog extends CommandDialog {
 	) {
 		super(controller, command, defaultParameters);
 		
-		this.setPreferredSize(new Dimension(400, 310));
+		this.setPreferredSize(new Dimension(440, 340));
 	}
 
 	@Override
@@ -57,6 +57,7 @@ public class BLASTNCommandDialog extends CommandDialog {
 				for (NucleotideDatabase database : nucleotideDatabases) {
 					if (database.getName().equals(receiver.getValue(option))) {
 						cmbDatabases.setSelectedItem(database);
+						break;
 					}
 				}
 			} else {

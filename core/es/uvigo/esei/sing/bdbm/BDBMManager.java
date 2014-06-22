@@ -6,11 +6,14 @@ import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.BDBMEnvironment;
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
+import es.uvigo.esei.sing.bdbm.environment.binaries.NCBIBinaries;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.BinaryCheckException;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 
 public class BDBMManager {
@@ -31,10 +34,13 @@ public class BDBMManager {
 		this.controller = controller;
 		this.controller.setRepositoryManager(this.repositoryManager);
 		this.controller.setBlastBinariesExecutor(
-			createBLASTBinariesExecutor(this.getEnvironment().getBlastBinaries())
+			createBLASTBinariesExecutor(this.getEnvironment().getBLASTBinaries())
 		);
 		this.controller.setEmbossBinariesExecutor(
-			createEMBOSSBinariesExecutor(this.getEnvironment().getEmbossBinaries())
+			createEMBOSSBinariesExecutor(this.getEnvironment().getEMBOSSBinaries())
+		);
+		this.controller.setNcbiBinariesExecutor(
+			createNCBIBinariesExecutor(this.getEnvironment().getNCBIBinaries())
 		);
 	}
 	
@@ -47,6 +53,12 @@ public class BDBMManager {
 	private EMBOSSBinariesExecutor createEMBOSSBinariesExecutor(EMBOSSBinaries binaries)
 	throws BinaryCheckException {
 		return EMBOSSBinaryToolsFactoryBuilder.newFactory(binaries)
+			.createExecutor();
+	}
+	
+	private NCBIBinariesExecutor createNCBIBinariesExecutor(NCBIBinaries binaries)
+	throws BinaryCheckException {
+		return NCBIBinaryToolsFactoryBuilder.newFactory(binaries)
 			.createExecutor();
 	}
 	
@@ -83,7 +95,18 @@ public class BDBMManager {
 			return false;
 		}
 	}
-	
+
+	public boolean checkNCBIPath(String path) {
+		try {
+			this.createNCBIBinariesExecutor(
+				this.getEnvironment().createNCBIBinaries(path)
+			);
+			return true;
+		} catch (BinaryCheckException e) {
+			return false;
+		}
+	}
+
 	public void shutdown() {
 		this.repositoryManager.shutdown();
 	}

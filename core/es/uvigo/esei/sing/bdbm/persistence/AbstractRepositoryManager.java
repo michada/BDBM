@@ -132,20 +132,16 @@ implements RepositoryManager<SE> {
 	throws EntityAlreadyExistsException, IOException {
 		this.checkSequenceType(sequenceType);
 		
-		try {
-			if (this.exists(sequenceType, name)) {
-				throw new EntityAlreadyExistsException(null);
+		if (this.exists(sequenceType, name)) {
+			throw new EntityAlreadyExistsException(null);
+		} else {
+			final SE entity = this.createEntity(name);
+			
+			if (this.createEntityFiles(entity)) {
+				return entity;
 			} else {
-				final SE entity = this.createEntity(name);
-				
-				if (this.createEntityFiles(entity)) {
-					return entity;
-				} else {
-					throw new IOException("Entity could not be created");
-				}
+				throw new IOException("Entity could not be created");
 			}
-		} catch (EntityValidationException eve) {
-			throw new EntityAlreadyExistsException("Entity already exists", null);
 		}
 	}
 	
@@ -178,18 +174,14 @@ implements RepositoryManager<SE> {
 		}
 	}
 	
-	public boolean validateEntityPath(File entityPath) {
-		return this.validateEntityPath(this.getSequenceType(), entityPath);
-	}
-	
 	@Override
-	public boolean validateEntityPath(SequenceType sequenceType, File entityPath) {
+	public void validateEntityPath(SequenceType sequenceType, File entityPath) throws EntityValidationException {
 		this.checkSequenceType(sequenceType);
 		
 		final EntityValidator<SE> entityValidator = this.getEntityValidator();
 		final EntityBuilder<SE> entityBuilder = this.getEntityBuilder();
 		
-		return entityValidator.validate(entityBuilder.create(sequenceType, entityPath));
+		entityValidator.validate(entityBuilder.create(sequenceType, entityPath));
 	}
 	
 	public SE[] list() {
@@ -215,9 +207,14 @@ implements RepositoryManager<SE> {
 	public boolean exists(SE entity) {
 		this.checkSequenceType(entity.getType());
 		
-		try {
-			return entity.getBaseFile().exists() && this.getEntityValidator().validate(entity);
-		} catch (EntityValidationException eve) {
+		if (entity.getBaseFile().exists()) {
+			try {
+				this.getEntityValidator().validate(entity);
+				return true;
+			} catch (EntityValidationException eve) {
+				return false;
+			}
+		} else {
 			return false;
 		}
 	}

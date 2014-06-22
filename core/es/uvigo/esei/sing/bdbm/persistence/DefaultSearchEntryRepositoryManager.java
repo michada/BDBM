@@ -2,6 +2,7 @@ package es.uvigo.esei.sing.bdbm.persistence;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.slf4j.Logger;
@@ -50,12 +51,12 @@ implements SearchEntryRepositoryManager {
 	}
 	
 	@Override
-	public boolean validateEntityPath(SequenceType type, File entityPath) {
+	public void validateEntityPath(SequenceType type, File entityPath) throws EntityValidationException {
+		final EntityValidator<SearchEntry> entityValidator = this.getEntityValidator();
 		try {
-			final EntityValidator<SearchEntry> entityValidator = this.getEntityValidator();
-			return entityValidator.validate(EntityBuilder.createUnwatchedSearchEntry(type, entityPath));
-		} catch (Exception e) {
-			return false;
+			entityValidator.validate(EntityBuilder.createUnwatchedSearchEntry(type, entityPath));
+		} catch (IOException e) {
+			throw new EntityValidationException("Error validating search entry", e, null);
 		}
 	}
 }

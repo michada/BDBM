@@ -12,7 +12,9 @@ import java.util.Properties;
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.DefaultBLASTBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.DefaultEMBOSSBinaries;
+import es.uvigo.esei.sing.bdbm.environment.binaries.DefaultNCBIBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
+import es.uvigo.esei.sing.bdbm.environment.binaries.NCBIBinaries;
 import es.uvigo.esei.sing.bdbm.environment.paths.DefaultRepositoryPaths;
 import es.uvigo.esei.sing.bdbm.environment.paths.RepositoryPaths;
 
@@ -20,6 +22,7 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 	private final DefaultRepositoryPaths repositoryPaths;
 	private final DefaultBLASTBinaries blastBinaries;
 	private final DefaultEMBOSSBinaries embossBinaries;
+	private final DefaultNCBIBinaries ncbiBinaries;
 	
 	private final File propertiesFile;
 	private final Properties defaultProperties;
@@ -27,6 +30,7 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 	public DefaultBDBMEnvironment() {
 		this.blastBinaries = this.createBLASTBinaries(null);
 		this.embossBinaries = this.createEMBOSSBinaries(null);
+		this.ncbiBinaries = this.createNCBIBinaries(null);
 		this.repositoryPaths = new DefaultRepositoryPaths(new File("."));
 		
 		this.propertiesFile = null;
@@ -45,7 +49,8 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 		for (String property : new String[] {
 			RepositoryPaths.BASE_DIRECTORY_PROP,
 			BLASTBinaries.BASE_DIRECTORY_PROP,
-			EMBOSSBinaries.BASE_DIRECTORY_PROP
+			EMBOSSBinaries.BASE_DIRECTORY_PROP,
+			NCBIBinaries.BASE_DIRECTORY_PROP
 		}) {
 			if (!this.hasProperty(property)) {
 				throw new IllegalStateException(
@@ -62,6 +67,9 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 		);
 		this.embossBinaries = new DefaultEMBOSSBinaries(
 			this.getProperty(EMBOSSBinaries.BASE_DIRECTORY_PROP)
+		);
+		this.ncbiBinaries = new DefaultNCBIBinaries(
+			this.getProperty(NCBIBinaries.BASE_DIRECTORY_PROP)
 		);
 	}
 	
@@ -83,6 +91,7 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 			
 			this.blastBinaries.setProperties(propertyMap);
 			this.embossBinaries.setProperties(propertyMap);
+			this.ncbiBinaries.setProperties(propertyMap);
 			this.repositoryPaths.setProperties(propertyMap);
 			
 			return true;
@@ -115,13 +124,18 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 	}
 
 	@Override
-	public BLASTBinaries getBlastBinaries() {
+	public BLASTBinaries getBLASTBinaries() {
 		return this.blastBinaries;
 	}
 	
 	@Override
-	public EMBOSSBinaries getEmbossBinaries() {
+	public EMBOSSBinaries getEMBOSSBinaries() {
 		return this.embossBinaries;
+	}
+
+	@Override
+	public NCBIBinaries getNCBIBinaries() {
+		return this.ncbiBinaries;
 	}
 
 	@Override
@@ -160,12 +174,12 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 	}
 	
 	@Override
-	public boolean changeBlastPath(File blastPath) throws IOException {
-		return this.changeBlastPath(blastPath, true);
+	public boolean changeBLASTPath(File blastPath) throws IOException {
+		return this.changeBLASTPath(blastPath, true);
 	}
 
 	@Override
-	public boolean changeBlastPath(File blastPath, boolean persist)
+	public boolean changeBLASTPath(File blastPath, boolean persist)
 	throws IOException {
 		if (this.changeProperty(
 			BLASTBinaries.BASE_DIRECTORY_PROP, 
@@ -181,12 +195,12 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 	}
 	
 	@Override
-	public boolean changeEmbossPath(File embossPath) throws IOException {
-		return this.changeEmbossPath(embossPath, true);
+	public boolean changeEMBOSSPath(File embossPath) throws IOException {
+		return this.changeEMBOSSPath(embossPath, true);
 	}
 
 	@Override
-	public boolean changeEmbossPath(File embossPath, boolean persist) throws IOException {
+	public boolean changeEMBOSSPath(File embossPath, boolean persist) throws IOException {
 		if (this.changeProperty(
 			EMBOSSBinaries.BASE_DIRECTORY_PROP,
 			embossPath.getAbsolutePath(),
@@ -201,11 +215,33 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 	}
 
 	@Override
-	public boolean changePaths(File repositoryPath, File blastPath, File embossPath) 
+	public boolean changeNCBIPath(File blastPath) throws IOException {
+		return this.changeNCBIPath(blastPath, true);
+	}
+
+	@Override
+	public boolean changeNCBIPath(File ncbiPath, boolean persist)
+	throws IOException {
+		if (this.changeProperty(
+			NCBIBinaries.BASE_DIRECTORY_PROP,
+			ncbiPath.getAbsolutePath(),
+			persist
+		)) {
+			this.ncbiBinaries.setBaseDirectory(ncbiPath);
+			
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean changePaths(File repositoryPath, File blastPath, File embossPath, File ncbiPath) 
 	throws IOException {
 		return this.changeProperty(RepositoryPaths.BASE_DIRECTORY_PROP, repositoryPath.getAbsolutePath(), true)
 				|| this.changeProperty(BLASTBinaries.BASE_DIRECTORY_PROP, blastPath == null ? "" : blastPath.getAbsolutePath(), true)
-				|| this.changeProperty(EMBOSSBinaries.BASE_DIRECTORY_PROP, embossPath == null ? "" : embossPath.getAbsolutePath(), true);
+				|| this.changeProperty(EMBOSSBinaries.BASE_DIRECTORY_PROP, embossPath == null ? "" : embossPath.getAbsolutePath(), true)
+				|| this.changeProperty(NCBIBinaries.BASE_DIRECTORY_PROP, ncbiPath == null ? "" : ncbiPath.getAbsolutePath(), true);
 	}
 
 	@Override
@@ -221,5 +257,10 @@ public class DefaultBDBMEnvironment implements BDBMEnvironment {
 	@Override
 	public DefaultEMBOSSBinaries createEMBOSSBinaries(String path) {
 		return new DefaultEMBOSSBinaries(path);
+	}
+
+	@Override
+	public DefaultNCBIBinaries createNCBIBinaries(String path) {
+		return new DefaultNCBIBinaries(path);
 	}
 }

@@ -28,6 +28,7 @@ public class ConfigurationPanel extends JPanel {
 	private final JTextField txtRepository;
 	private final JTextField txtBLAST;
 	private final JTextField txtEMBOSS;
+	private final JTextField txtNCBI;
 	private final JButton btnBuildRepository;
 
 	public ConfigurationPanel(BDBMGUIController controller) {
@@ -35,7 +36,7 @@ public class ConfigurationPanel extends JPanel {
 		
 		this.controller = controller;
 		
-		this.setPreferredSize(new Dimension(600, 107));
+		this.setPreferredSize(new Dimension(600, 140));
 		
 		final GroupLayout layout = new GroupLayout(this);
 		layout.setAutoCreateContainerGaps(true);
@@ -45,28 +46,35 @@ public class ConfigurationPanel extends JPanel {
 		final JLabel lblRepository = new JLabel("Repository Path");
 		final JLabel lblBLAST = new JLabel("BLAST Path");
 		final JLabel lblEMBOSS = new JLabel("EMBOSS Path");
+		final JLabel lblNCBI = new JLabel("NCBI Path");
 		
 		final File repositoryPath = this.controller.getEnvironment()
 			.getRepositoryPaths().getBaseDirectory();
 		final File blastBD = this.controller.getEnvironment()
-			.getBlastBinaries().getBaseDirectory();
+			.getBLASTBinaries().getBaseDirectory();
 		final File embossBD = this.controller.getEnvironment()
-			.getEmbossBinaries().getBaseDirectory();
+			.getEMBOSSBinaries().getBaseDirectory();
+		final File ncbiBD = this.controller.getEnvironment()
+			.getNCBIBinaries().getBaseDirectory();
 		
 		this.txtRepository = new JTextField(repositoryPath.getAbsolutePath());
 		this.txtBLAST = new JTextField(blastBD == null ? "" : blastBD.getAbsolutePath());
 		this.txtEMBOSS = new JTextField(embossBD == null ? "" : embossBD.getAbsolutePath());
+		this.txtNCBI = new JTextField(ncbiBD == null ? "" : ncbiBD.getAbsolutePath());
 		
 		this.txtRepository.setEditable(false);
 		this.txtBLAST.setEditable(false);
 		this.txtEMBOSS.setEditable(false);
+		this.txtNCBI.setEditable(false);
 		
 		final JButton btnRepository = new JButton("Select...");
 		final JButton btnBLASTSelect = new JButton("Select...");
 		final JButton btnEMBOSSSelect = new JButton("Select...");
+		final JButton btnNCBISelect = new JButton("Select...");
 		
 		final JButton btnBLASTInPath = new JButton("In system path");
 		final JButton btnEMBOSSInPath = new JButton("In system path");
+		final JButton btnNCBIInPath = new JButton("In system path");
 		
 		this.btnBuildRepository = new JButton(new AbstractAction("Build") {
 			private static final long serialVersionUID = 1L;
@@ -97,6 +105,12 @@ public class ConfigurationPanel extends JPanel {
 				.addComponent(btnEMBOSSSelect)
 				.addComponent(btnEMBOSSInPath)
 			)
+			.addGroup(layout.createParallelGroup()
+				.addComponent(lblNCBI, Alignment.CENTER)
+				.addComponent(this.txtNCBI)
+				.addComponent(btnNCBISelect)
+				.addComponent(btnNCBIInPath)
+			)
 		);
 		
 		layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -104,21 +118,25 @@ public class ConfigurationPanel extends JPanel {
 				.addComponent(lblRepository)
 				.addComponent(lblBLAST)
 				.addComponent(lblEMBOSS)
+				.addComponent(lblNCBI)
 			)
 			.addGroup(layout.createParallelGroup()
 				.addComponent(this.txtRepository)
 				.addComponent(this.txtBLAST)
 				.addComponent(this.txtEMBOSS)
+				.addComponent(this.txtNCBI)
 			)
 			.addGroup(layout.createParallelGroup()
 				.addComponent(btnRepository)
 				.addComponent(btnBLASTSelect)
 				.addComponent(btnEMBOSSSelect)
+				.addComponent(btnNCBISelect)
 			)
 			.addGroup(layout.createParallelGroup()
 				.addComponent(this.btnBuildRepository)
 				.addComponent(btnBLASTInPath)
 				.addComponent(btnEMBOSSInPath)
+				.addComponent(btnNCBIInPath)
 			)
 		);
 		
@@ -195,6 +213,30 @@ public class ConfigurationPanel extends JPanel {
 		btnEMBOSSInPath.addActionListener(
 			new SystemPathSelectionActionListener(this.txtEMBOSS, callbackCheckEMBOSS)
 		);
+		
+		final Callable<Boolean> callbackCheckNCBI = new Callable<Boolean>() {
+			@Override
+			public Boolean call() throws Exception {
+				if (ConfigurationPanel.this.isValidNCBIPath()) {
+					return true;
+				} else {
+					JOptionPane.showMessageDialog(
+						ConfigurationPanel.this, 
+						"Invalid NCBI binaries path. Please, change the selected path",
+						"Invalid Path",
+						JOptionPane.ERROR_MESSAGE
+					);
+					
+					return false;
+				}
+			}
+		};
+		btnNCBISelect.addActionListener(
+			new PathSelectionActionListener(this.txtNCBI, callbackCheckNCBI)
+		);
+		btnNCBIInPath.addActionListener(
+			new SystemPathSelectionActionListener(this.txtNCBI, callbackCheckNCBI)
+		);
 	}
 
 	public void addConfigurationChangeListener(ConfigurationChangeEventListener listener) {
@@ -232,6 +274,11 @@ public class ConfigurationPanel extends JPanel {
 			null : new File(this.txtEMBOSS.getText()).getAbsolutePath();
 	}
 	
+	protected String getNCBIPath() {
+		return this.txtNCBI.getText().isEmpty() ?
+			null : new File(this.txtNCBI.getText()).getAbsolutePath();
+	}
+	
 	public boolean isValidRepositoryPath() {
 		return this.controller.getEnvironment()
 			.getRepositoryPaths()
@@ -244,6 +291,10 @@ public class ConfigurationPanel extends JPanel {
 	
 	protected boolean isValidEMBOSSPath() {
 		return this.controller.getManager().checkEMBOSSPath(getEMBOSSPath());
+	}
+
+	protected boolean isValidNCBIPath() {
+		return this.controller.getManager().checkNCBIPath(getNCBIPath());
 	}
 	
 	protected void buildRepository() {
@@ -277,11 +328,13 @@ public class ConfigurationPanel extends JPanel {
 		if (this.isValidRepositoryPath() && this.isValidBLASTPath()) {
 			final String blastPath = this.getBLASTPath();
 			final String embossPath = this.getEMBOSSPath();
+			final String ncbiPath = this.getNCBIPath();
 			
 			return new PathsConfiguration(
 				this.getRepositoryDirectory(), 
 				blastPath == null ? null : new File(blastPath),
-				embossPath == null ? null : new File(embossPath)
+				embossPath == null ? null : new File(embossPath),
+				ncbiPath == null ? null : new File(ncbiPath)
 			);
 		} else {
 			return null;
@@ -315,8 +368,7 @@ public class ConfigurationPanel extends JPanel {
 		}
 	}
 
-	private final class PathSelectionActionListener implements
-			ActionListener {
+	private final class PathSelectionActionListener implements ActionListener {
 		private final JTextField txtAssociated;
 		private final Callable<Boolean> callback;
 

@@ -19,13 +19,13 @@ import es.uvigo.esei.sing.bdbm.environment.BDBMEnvironment;
 import es.uvigo.esei.sing.bdbm.environment.DefaultBDBMEnvironment;
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
-import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactory;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.BinaryCheckException;
-import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactory;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactory;
+import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.paths.RepositoryPaths;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.DefaultBDBMRepositoryManager;
@@ -39,8 +39,6 @@ public class BDBM extends Observable {
 	private BDBMEnvironment environment;
 	private BDBMRepositoryManager repositoryManager;
 	private BDBMController controller;
-	private BLASTBinariesExecutor blastExecutor;
-	private EMBOSSBinariesExecutor embossExecutor;
 	
 	private Properties systemProperties;
 	private Properties defaultProperties;
@@ -123,10 +121,11 @@ public class BDBM extends Observable {
 			
 			final BLASTBinaryToolsFactory blastFactory;
 			final EMBOSSBinaryToolsFactory embossFactory;
+			final NCBIBinaryToolsFactory ncbiFactory;
 			
 			try {
 				blastFactory = BLASTBinaryToolsFactoryBuilder.newFactory(
-					this.getEnvironment().getBlastBinaries()
+					this.getEnvironment().getBLASTBinaries()
 				);
 			} catch (BinaryCheckException bce) {
 				throw new IllegalStateException("Invalid BLAST binaries", bce);
@@ -134,16 +133,25 @@ public class BDBM extends Observable {
 			
 			try {
 				embossFactory = EMBOSSBinaryToolsFactoryBuilder.newFactory(
-					this.getEnvironment().getEmbossBinaries()
+					this.getEnvironment().getEMBOSSBinaries()
 				);
 			} catch (BinaryCheckException bce) {
 				throw new IllegalStateException("Invalid EMBOSS binaries", bce);
 			}
 			
+			try {
+				ncbiFactory = NCBIBinaryToolsFactoryBuilder.newFactory(
+					this.getEnvironment().getNCBIBinaries()
+				);
+			} catch (BinaryCheckException bce) {
+				throw new IllegalStateException("Invalid NCBI binaries", bce);
+			}
+			
 			this.controller = new DefaultBDBMController(
 				this.getRepositoryManager(),
-				this.blastExecutor = blastFactory.createExecutor(),
-				this.embossExecutor = embossFactory.createExecutor()
+				blastFactory.createExecutor(),
+				embossFactory.createExecutor(),
+				ncbiFactory.createExecutor()
 			);
 			
 			final RepositoryPaths repositoryPaths = this.environment.getRepositoryPaths();
@@ -267,13 +275,5 @@ public class BDBM extends Observable {
 	
 	public BDBMController getController() {
 		return this.controller;
-	}
-	
-	public BLASTBinariesExecutor getBLASTExecutor() {
-		return this.blastExecutor;
-	}
-	
-	public EMBOSSBinariesExecutor getEmbossExecutor() {
-		return this.embossExecutor;
 	}
 }
