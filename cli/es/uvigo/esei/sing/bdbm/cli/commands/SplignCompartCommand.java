@@ -9,7 +9,7 @@ import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideFasta;
 
-public class MergeDBCommand extends BDBMCommand {
+public class SplignCompartCommand extends BDBMCommand {
 	public static final FileOption OPTION_SOURCE_FASTA = 
 		new FileOption(
 			"Source Fasta", "sfasta", "Source fasta file",
@@ -36,23 +36,23 @@ public class MergeDBCommand extends BDBMCommand {
 			false, true
 		);
 	
-	public MergeDBCommand(BDBMController controller) {
+	public SplignCompartCommand(BDBMController controller) {
 		super(controller);
 	}
 
 	@Override
 	public String getName() {
-		return "mergedb";
+		return "spligncompart";
 	}
 	
 	@Override
 	public String getDescriptiveName() {
-		return "Merge DB (NCBI)";
+		return "Splign-Compart (NCBI)";
 	}
 
 	@Override
 	public String getDescription() {
-		return "Merges two databases to obtain a fasta";
+		return "Applies the Splign-Compart-Bedtools pipeline";
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class MergeDBCommand extends BDBMCommand {
 		final File targetDBDirectory = parameters.getSingleValue(OPTION_TARGET_DB);
 		final String outputName = parameters.getSingleValue(OPTION_OUTPUT_NAME);
 		
-		this.controller.mergeDB(
+		this.controller.splignCompart(
 			new DefaultNucleotideFasta(sourceFastaFile),
 			new DefaultNucleotideDatabase(sourceDBDirectory),
 			new DefaultNucleotideFasta(targetFastaFile),

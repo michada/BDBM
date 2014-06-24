@@ -40,7 +40,7 @@ implements ProteinSearchEntry {
 	
 	public class DefaultProteinQuery extends DefaultQuery implements ProteinQuery {
 		public DefaultProteinQuery(File file) {
-			super(file);
+			super(file, DefaultProteinSearchEntry.this);
 		}
 	}
 }

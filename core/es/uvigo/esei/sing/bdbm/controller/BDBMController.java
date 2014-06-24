@@ -26,6 +26,7 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinFasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinSearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinSearchEntry.ProteinQuery;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
+import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry.Query;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
 public interface BDBMController {
@@ -40,6 +41,7 @@ public interface BDBMController {
 	public abstract boolean delete(Database database) throws IOException;
 	public abstract boolean delete(Fasta fasta) throws IOException;
 	public abstract boolean delete(SearchEntry search) throws IOException;
+	public abstract boolean delete(Query query) throws IOException;
 	public abstract boolean delete(Export export) throws IOException;
 	public abstract boolean delete(ExportEntry exportEntry) throws IOException;
 
@@ -140,15 +142,15 @@ public interface BDBMController {
 	public abstract NucleotideFasta getORF(
 		NucleotideFasta fasta, 
 		int minSize, int maxSize, 
-		String outputName,
-		boolean noNewLine
+		boolean noNewLine,
+		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 	
 	public abstract void removeNewLines(
 		Fasta fasta
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 	
-	public abstract NucleotideFasta mergeDB(
+	public abstract NucleotideFasta splignCompart(
 		NucleotideFasta sourceFasta,
 		NucleotideDatabase sourceDB,
 		NucleotideFasta targetFasta,

@@ -24,15 +24,15 @@ public class GetORFCommand extends BDBMCommand {
 		new IntegerOption(
 			"Max. Size", "max", "Maximum ORF size", "10000"
 		);
-	public static final StringOption OPTION_OUTPUT_NAME = 
-		new StringOption(
-			"Output name", "output", "Output name", 
-			false, true
-		);
 	public static final DefaultValueBooleanOption OPTION_REMOVE_NEWLINES =
 		new DefaultValueBooleanOption(
 			"Remove new lines", "nonl", "Delete the new line characters from the sequences", 
 			false
+		);
+	public static final StringOption OPTION_OUTPUT_NAME = 
+		new StringOption(
+			"Output name", "output", "Output name", 
+			false, true
 		);
 	
 	public GetORFCommand(BDBMController controller) {
@@ -59,15 +59,15 @@ public class GetORFCommand extends BDBMCommand {
 		final File fastaFile = parameters.getSingleValue(OPTION_FASTA);
 		final Integer minSize = parameters.getSingleValue(OPTION_MIN_SIZE);
 		final Integer maxSize = parameters.getSingleValue(OPTION_MAX_SIZE);
-		final String outputName = parameters.getSingleValue(OPTION_OUTPUT_NAME);
 		final Boolean noNewLine = parameters.getSingleValue(OPTION_REMOVE_NEWLINES);
+		final String outputName = parameters.getSingleValue(OPTION_OUTPUT_NAME);
 		
 		this.controller.getORF(
 			new DefaultNucleotideFasta(fastaFile),
 			minSize,
 			maxSize,
-			outputName,
-			noNewLine
+			noNewLine,
+			outputName
 		);
 	}
 }

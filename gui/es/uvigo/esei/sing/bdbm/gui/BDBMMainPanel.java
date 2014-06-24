@@ -42,7 +42,7 @@ import es.uvigo.esei.sing.bdbm.cli.commands.BLASTPCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.ImportFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.MergeDBCommand;
+import es.uvigo.esei.sing.bdbm.cli.commands.SplignCompartCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTNCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTXCommand;
@@ -59,7 +59,7 @@ import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTXCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MergeDBCommandDialog;
+import es.uvigo.esei.sing.bdbm.gui.command.dialogs.SplignCompartCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTXCommandDialog;
@@ -230,8 +230,8 @@ public class BDBMMainPanel extends JPanel {
 		menuOperations.addSeparator();
 		menuOperations.add(new BDBMCommandAction(
 			bdbmController,
-			new MergeDBCommand(bdbmController),
-			MergeDBCommandDialog.class
+			new SplignCompartCommand(bdbmController),
+			SplignCompartCommandDialog.class
 		));
 		
 		final JMenu menuBlast = new JMenu("BLAST");
@@ -247,13 +247,13 @@ public class BDBMMainPanel extends JPanel {
 		));
 		menuBlast.add(new BDBMCommandAction(
 			bdbmController,
-			new TBLASTXCommand(bdbmController),
-			TBLASTXCommandDialog.class
+			new TBLASTNCommand(bdbmController),
+			TBLASTNCommandDialog.class
 		));
 		menuBlast.add(new BDBMCommandAction(
 			bdbmController,
-			new TBLASTNCommand(bdbmController),
-			TBLASTNCommandDialog.class
+			new TBLASTXCommand(bdbmController),
+			TBLASTXCommandDialog.class
 		));
 		
 		menuBlast.addSeparator();

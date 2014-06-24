@@ -40,7 +40,7 @@ implements NucleotideSearchEntry {
 	
 	public class DefaultNucleotideQuery extends DefaultQuery implements NucleotideQuery {
 		public DefaultNucleotideQuery(File file) {
-			super(file);
+			super(file, DefaultNucleotideSearchEntry.this);
 		}
 	}
 }
