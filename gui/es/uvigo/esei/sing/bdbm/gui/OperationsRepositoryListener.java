@@ -54,6 +54,7 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
+import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry.Query;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
 public class OperationsRepositoryListener extends MouseAdapter {
@@ -221,6 +222,13 @@ public class OperationsRepositoryListener extends MouseAdapter {
 							
 							this.showPopupMenu(
 								"Search Entry", "Search Entry", tree, searchEntry, 
+								e.getX(), e.getY()
+							);
+						} else if (node.getUserObject() instanceof Query) {
+							final Query searchEntry = (Query) node.getUserObject();
+							
+							this.showPopupMenu(
+								"Query", "Query", tree, searchEntry, 
 								e.getX(), e.getY()
 							);
 						} else if (node.getUserObject() instanceof Export) {

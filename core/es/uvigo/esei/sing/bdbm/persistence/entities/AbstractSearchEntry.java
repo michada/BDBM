@@ -108,6 +108,18 @@ public abstract class AbstractSearchEntry extends AbstractSequenceEntity impleme
 	}
 	
 	@Override
+	public void deleteQuery(Query query) 
+	throws IllegalArgumentException, IOException {
+		if (this.listQueries().contains(query)) {
+			if (!query.getBaseFile().delete()) {
+				throw new IOException("Query file '" + query.getBaseFile().getAbsolutePath() + "' couldn't be deleted.");
+			}
+		} else {
+			throw new IllegalArgumentException("Query doesn't belongs to this Export");
+		}
+	}
+	
+	@Override
 	public File getDirectory() {
 		return this.getBaseFile();
 	}
@@ -154,9 +166,16 @@ public abstract class AbstractSearchEntry extends AbstractSequenceEntity impleme
 	
 	public class DefaultQuery implements Query {
 		private final File file;
+		private final SearchEntry searchEntry;
 		
-		protected DefaultQuery(File file) {
+		protected DefaultQuery(File file, SearchEntry searchEntry) {
 			this.file = file;
+			this.searchEntry = searchEntry;
+		}
+		
+		@Override
+		public SearchEntry getSearchEntry() {
+			return this.searchEntry;
 		}
 
 		@Override

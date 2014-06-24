@@ -38,6 +38,7 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinFasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinSearchEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinSearchEntry.ProteinQuery;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
+import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry.Query;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
 public class DefaultBDBMController implements BDBMController {
@@ -105,6 +106,8 @@ public class DefaultBDBMController implements BDBMController {
 			return this.delete((Fasta) entity);
 		} else if (entity instanceof SearchEntry) {
 			return this.delete((SearchEntry) entity);
+		} else if (entity instanceof Query) {
+			return this.delete((Query) entity);
 		} else if (entity instanceof Export) {
 			return this.delete((Export) entity);
 		} else if (entity instanceof ExportEntry) {
@@ -127,6 +130,18 @@ public class DefaultBDBMController implements BDBMController {
 	@Override
 	public boolean delete(SearchEntry search) throws IOException {
 		return this.repositoryManager.searchEntry().delete(search);
+	}
+	
+	@Override
+	public boolean delete(Query query) throws IOException {
+		final SearchEntry searchEntry = query.getSearchEntry();
+		
+		searchEntry.deleteQuery(query);
+		if (searchEntry.listQueries().isEmpty()) {
+			return this.delete(searchEntry);
+		} else {
+			return true;
+		}
 	}
 	
 	@Override
@@ -579,8 +594,8 @@ public class DefaultBDBMController implements BDBMController {
 		NucleotideFasta fasta,
 		int minSize,
 		int maxSize,
-		String outputName,
-		boolean noNewLines
+		boolean noNewLines,
+		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
 		final NucleotideFasta orf = fastaManager.getNucleotide(outputName);
@@ -632,7 +647,7 @@ public class DefaultBDBMController implements BDBMController {
 	}
 
 	@Override
-	public NucleotideFasta mergeDB(
+	public NucleotideFasta splignCompart(
 		NucleotideFasta sourceFasta,
 		NucleotideDatabase sourceDB,
 		NucleotideFasta targetFasta,
