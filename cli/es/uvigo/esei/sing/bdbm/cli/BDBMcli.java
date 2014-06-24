@@ -1,59 +1,43 @@
 package es.uvigo.esei.sing.bdbm.cli;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Arrays;
+import java.io.FilenameFilter;
+import java.lang.reflect.Modifier;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import es.uvigo.ei.sing.yacli.CLIApplication;
 import es.uvigo.ei.sing.yacli.Command;
 import es.uvigo.esei.sing.bdbm.BDBMManager;
-import es.uvigo.esei.sing.bdbm.cli.commands.BLASTNCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.BLASTPCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ImportFastaCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ListNucleotidesDBCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ListProteinDBCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTNCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTXCommand;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.controller.DefaultBDBMController;
 import es.uvigo.esei.sing.bdbm.environment.DefaultBDBMEnvironment;
-import es.uvigo.esei.sing.bdbm.environment.execution.BinaryCheckException;
 import es.uvigo.esei.sing.bdbm.persistence.DefaultBDBMRepositoryManager;
 
 public class BDBMcli extends CLIApplication {
-	private final BDBMManager manager;
-	
-	public BDBMcli(BDBMManager manager) {
-		this.manager = manager;
+	public BDBMcli() {
+		super(true, false);
+		
+		this.loadCommands();
 	}
 	
 	@Override
-	protected List<Command> buildCommands() throws IllegalStateException {
-//		BDBMController controller = BDBM.getInstance().getController();
-		/*new BDBMController(
-			new DefaultBDBMRepositoryManager(BDBM.getEnvironment().getRepositoryPaths()), 
-			BinaryToolFactoryBuilder.newFactory(BDBM.getEnvironment().getBlastBinaries()).createExecutor()
-		);*/
-		
-		final BDBMController controller = this.manager.getController();
-		
-		return Arrays.asList(
-			(Command) new ListProteinDBCommand(controller),
-			(Command) new ListNucleotidesDBCommand(controller),
-			(Command) new ImportFastaCommand(controller),
-			(Command) new MakeBLASTDBCommand(controller),
-			(Command) new RetrieveSearchEntryCommand(controller),
-			(Command) new BLASTNCommand(controller),
-			(Command) new BLASTPCommand(controller),
-			(Command) new TBLASTNCommand(controller),
-			(Command) new TBLASTXCommand(controller),
-			(Command) new GetORFCommand(controller)
-		);
+	protected List<Command> buildCommands() {
+		try {
+			final BDBMManager manager = new BDBMManager(
+				new DefaultBDBMEnvironment(new File("bdbm.conf")),
+				new DefaultBDBMRepositoryManager(),
+				new DefaultBDBMController()
+			);
+			
+			return getCommands(manager.getController());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -66,13 +50,71 @@ public class BDBMcli extends CLIApplication {
 		return "bdbm";
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, IOException, BinaryCheckException {
-		final BDBMManager manager = new BDBMManager(
-			new DefaultBDBMEnvironment(new File("bdbm.conf")),
-			new DefaultBDBMRepositoryManager(),
-			new DefaultBDBMController()
-		);
+	private static List<Command> getCommands(BDBMController controller) {
+		final List<Command> commands = new ArrayList<>();
 		
-		new BDBMcli(manager).run(args);
+		try {
+			for (Class<? extends Command> commandClass : getCommandClasses("es.uvigo.esei.sing.bdbm.cli.commands")) {
+				commands.add(commandClass.getConstructor(BDBMController.class).newInstance(controller));
+			}
+			
+			Collections.sort(commands, new Comparator<Command>() {
+				@Override
+				public int compare(Command o1, Command o2) {
+					return o1.getName().compareTo(o2.getName());
+				}
+			});
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		return commands;
+	}
+	
+	private static List<Class<? extends Command>> getCommandClasses(String packageName) {
+		final ClassLoader classLoader = 
+			Thread.currentThread().getContextClassLoader();
+
+		final String path = packageName.replace('.', '/');
+		final List<Class<? extends Command>> commandClasses = new ArrayList<>();
+		final URL packageURL = classLoader.getResource(path);
+		
+		try {
+			final File packageDir = new File(packageURL.toURI());
+		
+			class ClassFilenameFilter implements FilenameFilter {
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.endsWith(".class");
+				}
+			}
+			
+			for (File resource : packageDir.listFiles(new ClassFilenameFilter())) {
+				final String filename = resource.getName();
+				
+				if (filename.endsWith(".class")) {
+					try {
+						@SuppressWarnings("unchecked")
+						final Class<? extends Command> clazz = 
+							(Class<? extends Command>) Class.forName(packageName + "." + filename.substring(0, filename.length() - 6));
+						final int modifiers = clazz.getModifiers();
+						if (!Modifier.isAbstract(modifiers) 
+							&& !Modifier.isInterface(modifiers)
+							&& !clazz.isEnum() 
+							&& Command.class.isAssignableFrom(clazz)
+						) {
+							commandClasses.add(clazz);
+						}
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+			return commandClasses;
+			
+		} catch (URISyntaxException e1) {
+			throw new RuntimeException(e1);
+		}
 	}
 }
