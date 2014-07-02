@@ -42,6 +42,7 @@ import es.uvigo.esei.sing.bdbm.cli.commands.BLASTPCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.ImportFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
+import es.uvigo.esei.sing.bdbm.cli.commands.ReformatFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.SplignCompartCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTNCommand;
@@ -59,6 +60,7 @@ import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTXCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
+import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ReformatFastaCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.SplignCompartCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTNCommandDialog;
@@ -217,6 +219,12 @@ public class BDBMMainPanel extends JPanel {
 		retrieveSearchEntryCA.addParamValue(boolean.class, this.controller.getEnvironment().isAccessionInferEnabled());
 		
 		menuOperations.add(retrieveSearchEntryCA);
+		
+		menuOperations.add(new BDBMCommandAction(
+			bdbmController, 
+			new ReformatFastaCommand(bdbmController), 
+			ReformatFastaCommandDialog.class)
+		);
 		
 		// ORF Operations
 		menuOperations.addSeparator();

@@ -37,6 +37,7 @@ import es.uvigo.ei.sing.yacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTDBAliasToolCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
+import es.uvigo.esei.sing.bdbm.cli.commands.ReformatFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
@@ -47,6 +48,7 @@ import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
+import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ReformatFastaCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
@@ -141,17 +143,24 @@ public class OperationsRepositoryListener extends MouseAdapter {
 						if (node.getUserObject() instanceof Fasta) {
 							final Fasta fasta = (Fasta) node.getUserObject();
 							
+							final DefaultParameters makedbFastaParameters = new DefaultParameters(createEntityParams(
+								fasta,
+								MakeBLASTDBCommand.OPTION_DB_TYPE,
+								MakeBLASTDBCommand.OPTION_INPUT
+							));							
+							final DefaultParameters reformatFastaParameters = new DefaultParameters(createEntityParams(
+								fasta,
+								ReformatFastaCommand.OPTION_FASTA_TYPE,
+								ReformatFastaCommand.OPTION_FASTA
+							));
+							
 							final Action[] actions;
 							if (fasta instanceof NucleotideFasta) {
 								actions = new Action[] {
 									this.createBDBMCommandAction(
 										MakeBLASTDBCommand.class, 
 										MakeBLASTDBCommandDialog.class,
-										new DefaultParameters(createEntityParams(
-											fasta,
-											MakeBLASTDBCommand.OPTION_DB_TYPE,
-											MakeBLASTDBCommand.OPTION_INPUT
-										))
+										makedbFastaParameters
 									),
 									this.createBDBMCommandAction(
 										GetORFCommand.class, 
@@ -160,6 +169,11 @@ public class OperationsRepositoryListener extends MouseAdapter {
 											GetORFCommand.OPTION_FASTA, 
 											fasta.getFile().getAbsolutePath()
 										)
+									),
+									this.createBDBMCommandAction(
+										ReformatFastaCommand.class,
+										ReformatFastaCommandDialog.class,
+										reformatFastaParameters
 									)
 								};
 							} else {
@@ -167,11 +181,12 @@ public class OperationsRepositoryListener extends MouseAdapter {
 									this.createBDBMCommandAction(
 										MakeBLASTDBCommand.class, 
 										MakeBLASTDBCommandDialog.class,
-										new DefaultParameters(createEntityParams(
-											fasta,
-											MakeBLASTDBCommand.OPTION_DB_TYPE,
-											MakeBLASTDBCommand.OPTION_INPUT
-										))
+										makedbFastaParameters
+									),
+									this.createBDBMCommandAction(
+										ReformatFastaCommand.class,
+										ReformatFastaCommandDialog.class,
+										reformatFastaParameters
 									)
 								};
 							}

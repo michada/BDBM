@@ -1,8 +1,6 @@
 package es.uvigo.esei.sing.bdbm.controller;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
@@ -16,6 +14,8 @@ import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionResult;
 import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.fasta.DefaultFastaParser;
+import es.uvigo.esei.sing.bdbm.fasta.FastaParserAdapter;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.DatabaseRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
@@ -606,7 +606,7 @@ public class DefaultBDBMController implements BDBMController {
 			try {
 				this.embossBinariesExecutor.executeGetORF(fasta, orf, minSize, maxSize);
 				if (noNewLines) {
-					removeNewLines(orf);
+					reformatFasta(orf);
 				}
 				
 				return orf;
@@ -615,35 +615,6 @@ public class DefaultBDBMController implements BDBMController {
 					fastaManager.delete(orf);
 			}
 		}
-	}
-	
-	@Override
-	public void removeNewLines(Fasta fasta) throws IOException {
-		final File tmpFile = File.createTempFile("bdbm", "fasta");
-		tmpFile.deleteOnExit();
-		
-		try (BufferedReader br = new BufferedReader(new FileReader(fasta.getFile()));
-			PrintWriter pw = new PrintWriter(tmpFile)
-		) {
-			String line;
-			
-			boolean first = true;
-			while ((line = br.readLine()) != null) {
-				if (line.startsWith(">")) {
-					if (first) {
-						pw.println();
-						first = false;
-					}
-					
-					pw.println(line);
-				} else {
-					pw.print(line);
-				}
-			}
-		}
-		
-		fasta.getFile().delete();
-		FileUtils.moveFile(tmpFile, fasta.getFile());
 	}
 
 	@Override
@@ -673,18 +644,55 @@ public class DefaultBDBMController implements BDBMController {
 		}
 	}
 	
-//	private Fasta convertOrfToFasta(NucleotideFasta orf, String fastaName)
-//		throws EntityAlreadyExistsException, IOException {
-//		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
-//		
-//		if (fastaManager.exists(orf)) {
-//			final Fasta fasta = fastaManager.create(orf.getType(), fastaName);
-//			
-//			FileUtils.copyFile(orf.getFile(), fasta.getFile());
-//			
-//			return fasta;
-//		} else {
-//			throw new IOException("Unknown ORF: " + orf);
-//		}
-//	}
+	@Override
+	public void reformatFasta(Fasta fasta) throws IOException {
+		this.reformatFasta(fasta, 0);
+	}
+	
+	@Override
+	public void reformatFasta(Fasta fasta, final int fragmentLength) throws IOException {
+		final File tmpFile = File.createTempFile("bdbm", "fasta");
+		tmpFile.deleteOnExit();
+		
+		try (final PrintWriter pw = new PrintWriter(tmpFile)) {
+			final DefaultFastaParser parser = new DefaultFastaParser();
+			parser.addParseListener(new FastaParserAdapter() {
+				String name;
+				StringBuilder sequence = new StringBuilder();
+				
+				@Override
+				public void sequenceNameRead(File file, String sequenceName) {
+					name = sequenceName;
+				}
+				
+				@Override
+				public void sequenceFragmentRead(File file, String fragment) {
+					sequence.append(fragment);
+				}
+				
+				@Override
+				public void sequenceEnd(File file) {
+					pw.println(name);
+					
+					if (fragmentLength <= 0 || fragmentLength > sequence.length()) {
+						pw.println(sequence);
+					} else {
+						for (int i = 0; i < sequence.length(); i += fragmentLength) {
+							final int endIndex = Math.min(sequence.length(), i + fragmentLength);
+							pw.println(sequence.substring(i, endIndex));
+						}
+					}
+					
+					pw.flush();
+					name = null;
+					sequence = new StringBuilder();
+				}
+			});
+			
+			parser.parse(fasta.getFile());
+		}
+		
+		fasta.getFile().delete();
+		FileUtils.moveFile(tmpFile, fasta.getFile());
+	}
 }

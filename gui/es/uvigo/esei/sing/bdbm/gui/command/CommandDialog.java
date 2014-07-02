@@ -104,6 +104,8 @@ public class CommandDialog extends JDialog {
 	
 		final JTextArea taDescription = new JTextArea(this.command.getDescription());
 		taDescription.setEditable(false);
+		taDescription.setWrapStyleWord(true);
+		taDescription.setLineWrap(true);
 		taDescription.setMargin(new Insets(10, 8, 10, 8));
 		
 		final JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.CENTER));

@@ -146,10 +146,6 @@ public interface BDBMController {
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 	
-	public abstract void removeNewLines(
-		Fasta fasta
-	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
-	
 	public abstract NucleotideFasta splignCompart(
 		NucleotideFasta sourceFasta,
 		NucleotideDatabase sourceDB,
@@ -157,4 +153,7 @@ public interface BDBMController {
 		NucleotideDatabase targetDB,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
+	
+	public abstract void reformatFasta(Fasta fasta) throws IOException;
+	public abstract void reformatFasta(Fasta fasta, int fragmentLength) throws IOException;
 }
