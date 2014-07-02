@@ -178,7 +178,7 @@ public class OperationsRepositoryListener extends MouseAdapter {
 							
 							this.showPopupMenu(
 								"Fasta", 
-								"Fasta", 
+								"fasta", 
 								tree, 
 								fasta, 
 								e.getX(), 
@@ -192,7 +192,7 @@ public class OperationsRepositoryListener extends MouseAdapter {
 	
 							this.showPopupMenu(
 								"Database", 
-								"Database", 
+								"database", 
 								tree, 
 								database, 
 								e.getX(), 
@@ -221,28 +221,28 @@ public class OperationsRepositoryListener extends MouseAdapter {
 							final SearchEntry searchEntry = (SearchEntry) node.getUserObject();
 							
 							this.showPopupMenu(
-								"Search Entry", "Search Entry", tree, searchEntry, 
+								"Search Entry", "search entry", tree, searchEntry, 
 								e.getX(), e.getY()
 							);
 						} else if (node.getUserObject() instanceof Query) {
 							final Query searchEntry = (Query) node.getUserObject();
 							
 							this.showPopupMenu(
-								"Query", "Query", tree, searchEntry, 
+								"Query", "query", tree, searchEntry, 
 								e.getX(), e.getY()
 							);
 						} else if (node.getUserObject() instanceof Export) {
 							final Export export = (Export) node.getUserObject();
 							
 							this.showPopupMenu(
-								"Database Export", "Database Export", tree, export, 
+								"Database Export", "database export", tree, export, 
 								e.getX(), e.getY()
 							);
 						} else if (node.getUserObject() instanceof ExportEntry) {
 							final ExportEntry entry = (ExportEntry) node.getUserObject();
 							
 							this.showPopupMenu(
-								"Database Export Entry", "Database Export Entry", tree, entry, 
+								"Database Entry", "database entry", tree, entry, 
 								e.getX(), e.getY()
 							);
 						} else if (node instanceof TextFileMutableTreeObject) {
@@ -331,7 +331,7 @@ public class OperationsRepositoryListener extends MouseAdapter {
 		}
 
 		private ExportToAction(Component parent, File file, String entityName) {
-			super("Export " + entityName + " To...");
+			super("Export " + entityName + " to...");
 			this.file = file;
 			this.entityName = entityName;
 			this.parent = parent;
