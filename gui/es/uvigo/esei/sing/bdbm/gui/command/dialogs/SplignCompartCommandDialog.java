@@ -42,8 +42,8 @@ public class SplignCompartCommandDialog extends CommandDialog {
 		final Option<T> option,
 		final ParameterValuesReceiver receiver
 	) {
-		if (option.equals(SplignCompartCommand.OPTION_REFERENCE_FASTA) ||
-			option.equals(SplignCompartCommand.OPTION_TARGET_FASTA)
+		if (option.equals(SplignCompartCommand.OPTION_GENOME_FASTA) ||
+			option.equals(SplignCompartCommand.OPTION_CDS_FASTA)
 		) {
 			final NucleotideFasta[] fastas = this.controller.listNucleotideFastas();
 			
@@ -85,8 +85,8 @@ public class SplignCompartCommandDialog extends CommandDialog {
 			cmbFastas.addActionListener(alFastas);
 			
 			return cmbFastas;
-		} else if (option.equals(SplignCompartCommand.OPTION_REFERENCE_DB) ||
-			option.equals(SplignCompartCommand.OPTION_TARGET_DB)
+		} else if (option.equals(SplignCompartCommand.OPTION_GENOME_DB) ||
+			option.equals(SplignCompartCommand.OPTION_CDS_DB)
 		) {
 			final NucleotideDatabase[] nucleotideDatabases = 
 					this.controller.listNucleotideDatabases();

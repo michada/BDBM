@@ -10,24 +10,24 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideFasta;
 
 public class SplignCompartCommand extends BDBMCommand {
-	public static final FileOption OPTION_REFERENCE_FASTA = 
+	public static final FileOption OPTION_GENOME_FASTA = 
 		new FileOption(
-			"Reference Fasta", "rfasta", "Reference fasta file",
+			"Genome Fasta", "gfasta", "Genome fasta file",
 			false, true
 		);
-	public static final FileOption OPTION_REFERENCE_DB = 
+	public static final FileOption OPTION_GENOME_DB = 
 		new FileOption(
-			"Reference Database", "rdb", "Reference database directory",
+			"Genome Database", "gdb", "Genome database directory",
 			false, true
 		);
-	public static final FileOption OPTION_TARGET_FASTA = 
+	public static final FileOption OPTION_CDS_FASTA = 
 		new FileOption(
-			"Target Fasta", "tfasta", "Target fasta file",
+			"CDS Fasta", "cfasta", "CDS fasta file",
 			false, true
 		);
-	public static final FileOption OPTION_TARGET_DB = 
+	public static final FileOption OPTION_CDS_DB = 
 		new FileOption(
-			"Target Database", "tdb", "Target database directory",
+			"CDS Database", "cdb", "CDS database directory",
 			false, true
 		);
 	public static final StringOption OPTION_OUTPUT_NAME = 
@@ -57,17 +57,17 @@ public class SplignCompartCommand extends BDBMCommand {
 
 	@Override
 	public void execute(Parameters parameters) throws Exception {
-		final File referenceFastaFile = parameters.getSingleValue(OPTION_REFERENCE_FASTA);
-		final File referenceDBDirectory = parameters.getSingleValue(OPTION_REFERENCE_DB);
-		final File targetFastaFile = parameters.getSingleValue(OPTION_TARGET_FASTA);
-		final File targetDBDirectory = parameters.getSingleValue(OPTION_TARGET_DB);
+		final File genomeFastaFile = parameters.getSingleValue(OPTION_GENOME_FASTA);
+		final File genomeDBDirectory = parameters.getSingleValue(OPTION_GENOME_DB);
+		final File cdsFastaFile = parameters.getSingleValue(OPTION_CDS_FASTA);
+		final File cdsDBDirectory = parameters.getSingleValue(OPTION_CDS_DB);
 		final String outputName = parameters.getSingleValue(OPTION_OUTPUT_NAME);
 		
 		this.controller.splignCompart(
-			new DefaultNucleotideFasta(referenceFastaFile),
-			new DefaultNucleotideDatabase(referenceDBDirectory),
-			new DefaultNucleotideFasta(targetFastaFile),
-			new DefaultNucleotideDatabase(targetDBDirectory),
+			new DefaultNucleotideFasta(genomeFastaFile),
+			new DefaultNucleotideDatabase(genomeDBDirectory),
+			new DefaultNucleotideFasta(cdsFastaFile),
+			new DefaultNucleotideDatabase(cdsDBDirectory),
 			outputName
 		);
 	}

@@ -61,14 +61,14 @@ implements NCBIBinariesExecutor {
 	
 	@Override
 	public ExecutionResult splignCompart(
-		NucleotideFasta referenceFasta, 
-		NucleotideDatabase referenceDB, 
-		NucleotideFasta targetFasta,
-		NucleotideDatabase targetDB,
+		NucleotideFasta genomeFasta, 
+		NucleotideDatabase genomeDB, 
+		NucleotideFasta cdsFasta,
+		NucleotideDatabase cdsDB,
 		NucleotideFasta fasta
 	) throws InterruptedException, ExecutionException, IOException {
 		try (final DirectoryManager dirManager = new DirectoryManager(
-			referenceFasta, referenceDB, targetFasta, targetDB
+			genomeFasta, genomeDB, cdsFasta, cdsDB
 		)) {
 			ExecutionResult mkldsResult = AbstractBinariesExecutor.executeCommand(
 				LOG,

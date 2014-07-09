@@ -10,10 +10,10 @@ public interface NCBIBinariesExecutor extends BinariesExecutor<NCBIBinaries> {
 	public boolean checkNCBIBinaries(NCBIBinaries bBinaries);
 
 	public ExecutionResult splignCompart(
-		NucleotideFasta referenceFasta, 
-		NucleotideDatabase referenceDB, 
-		NucleotideFasta targetFasta,
-		NucleotideDatabase targetDB, 
+		NucleotideFasta genomeFasta, 
+		NucleotideDatabase genomeDB, 
+		NucleotideFasta cdsFasta,
+		NucleotideDatabase cdsDB, 
 		NucleotideFasta outputFasta
 	) throws InterruptedException, ExecutionException, IOException;
 }

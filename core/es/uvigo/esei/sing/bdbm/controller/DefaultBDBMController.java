@@ -619,10 +619,10 @@ public class DefaultBDBMController implements BDBMController {
 
 	@Override
 	public NucleotideFasta splignCompart(
-		NucleotideFasta referenceFasta,
-		NucleotideDatabase referenceDB,
-		NucleotideFasta targetFasta,
-		NucleotideDatabase targetDB,
+		NucleotideFasta genomeFasta,
+		NucleotideDatabase genomeDB,
+		NucleotideFasta cdsFasta,
+		NucleotideDatabase cdsDB,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
 		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
@@ -632,7 +632,7 @@ public class DefaultBDBMController implements BDBMController {
 			throw new IllegalArgumentException("Fasta already exists: " + outputName);
 		} else {
 			final ExecutionResult result = this.ncbiBinariesExecutor.splignCompart(
-				referenceFasta, referenceDB, targetFasta, targetDB, fasta
+				genomeFasta, genomeDB, cdsFasta, cdsDB, fasta
 			);
 			
 			if (result.getExitStatus() != 0) {
