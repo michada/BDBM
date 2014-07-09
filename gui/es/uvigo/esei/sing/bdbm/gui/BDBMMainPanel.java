@@ -43,13 +43,13 @@ import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.ImportFastaCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.ReformatFastaCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.SplignCompartCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
+import es.uvigo.esei.sing.bdbm.cli.commands.SplignCompartCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTNCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTXCommand;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
-import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeObject;
+import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeNode;
 import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTNCommandDialog;
@@ -61,8 +61,8 @@ import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTXCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ReformatFastaCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.SplignCompartCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
+import es.uvigo.esei.sing.bdbm.gui.command.dialogs.SplignCompartCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTNCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTXCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.configuration.ConfigurationDialog;
@@ -113,6 +113,11 @@ public class BDBMMainPanel extends JPanel {
 		this.treeNucleotide.addMouseListener(new OperationsRepositoryListener(this.controller));
 		this.treeProtein.addMouseListener(new OperationsRepositoryListener(this.controller));
 		
+		this.treeNucleotide.setDoubleBuffered(true);
+		this.treeProtein.setDoubleBuffered(true);
+		this.treeNucleotide.setShowsRootHandles(true);
+		this.treeProtein.setShowsRootHandles(true);
+		
 		final TextFileMouseListener textFileMouseListener = 
 			new TextFileMouseListener(this.tbMain);
 		this.treeNucleotide.addMouseListener(textFileMouseListener);
@@ -141,7 +146,7 @@ public class BDBMMainPanel extends JPanel {
 				final PanelLogger standardPanelLogger = new PanelLogger(
 					getExecutionAppender(LogConfiguration.EXECUTION_STD_MARKER_LABEL)
 				);
-				standardPanelLogger.setForeground(Color.GREEN);
+				standardPanelLogger.setForeground(new Color(0, 224, 0));
 				tpLoggers.addTab("Standard Log", standardPanelLogger);
 			}
 			
@@ -149,7 +154,7 @@ public class BDBMMainPanel extends JPanel {
 				final PanelLogger errorPanelLogger = new PanelLogger(
 					getExecutionAppender(LogConfiguration.EXECUTION_ERROR_MARKER_LABEL)
 				);
-				errorPanelLogger.setForeground(Color.RED);
+				errorPanelLogger.setForeground(new Color(224, 0, 0));
 				tpLoggers.addTab("Error Log", errorPanelLogger);
 			}
 			
@@ -313,10 +318,17 @@ public class BDBMMainPanel extends JPanel {
 		);
 		tree.getModel().addTreeModelListener(new TreeModelListener() {
 			@Override
-			public void treeNodesInserted(TreeModelEvent e) {
-				tree.setSelectionPath(e.getTreePath().pathByAddingChild(e.getChildren()[0]));
+			public void treeNodesInserted(final TreeModelEvent e) {
+				final TreePath path = e.getTreePath().pathByAddingChild(e.getChildren()[0]);
 				
-				tpData.setSelectedIndex(tpData.indexOfTab(tabTitle));
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						tree.setSelectionPath(path);
+						
+						tpData.setSelectedIndex(tpData.indexOfTab(tabTitle));
+					}
+				});
 			}
 			
 			@Override
@@ -398,9 +410,9 @@ public class BDBMMainPanel extends JPanel {
 				final TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
 				
 				final Object value = path.getLastPathComponent();
-				if (value instanceof TextFileMutableTreeObject) {
-					final TextFileMutableTreeObject node = 
-						(TextFileMutableTreeObject) value;
+				if (value instanceof TextFileMutableTreeNode) {
+					final TextFileMutableTreeNode<?> node = 
+						(TextFileMutableTreeNode<?>) value;
 					
 					final String tabName = node.getUserObject().toString();
 					

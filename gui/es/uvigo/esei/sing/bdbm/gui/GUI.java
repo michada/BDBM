@@ -14,7 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 import es.uvigo.esei.sing.bdbm.BDBMManager;
 import es.uvigo.esei.sing.bdbm.controller.DefaultBDBMController;
@@ -30,7 +30,6 @@ import es.uvigo.esei.sing.bdbm.persistence.DefaultBDBMRepositoryManager;
 
 public class GUI implements Observer {
 	private final static ImageIcon IMAGE_BDBM = new ImageIcon(BDBMSplash.class.getResource("images/bdbm.png"));
-//	private final static Logger LOG = LoggerFactory.getLogger(GUI.class);
 	
 	private BDBMManager manager;
 	private BDBMGUIController guiController;
@@ -148,63 +147,63 @@ public class GUI implements Observer {
 	}
 	
 	public static void main(String[] args) {
-		try {
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					UIManager.setLookAndFeel(new NimbusLookAndFeel());
+					
+					final BDBMSplash splash = new BDBMSplash();
+					try {
+						splash.setVisible(true);
+			
+						final GUI gui = new GUI();
+						final DefaultBDBMEnvironment env = gui.createBDBMEnvironment();
+			
+						if (!checkRepositoryPaths(env, splash)) {
+							System.exit(10);
+						} else if (!checkBlastBinaries(env, splash)) {
+							System.exit(11);
+						} else if (!checkEmbossBinaries(env, splash)) {
+							System.exit(12);
+						} else if (!checkNcbiBinaries(env, splash)) {
+							System.exit(13);
+						} else {
+							gui.initGUI();
+							gui.showMainFrame();
+						}
+					} catch (FileNotFoundException fnfe) {
+						JOptionPane.showMessageDialog(null,
+							"Configuration file not found in path: "
+								+ new File("bdbm.conf").getAbsolutePath()
+								+ ". Program will exit.",
+							"Missing Configuration File",
+							JOptionPane.ERROR_MESSAGE
+						);
+			
+						System.exit(1);
+					} catch (IllegalStateException ise) {
+						JOptionPane.showMessageDialog(null, 
+							ise.getMessage() + ". Program will exit.",
+							"Missing Property",
+							JOptionPane.ERROR_MESSAGE
+						);
+			
+						System.exit(2);
+					} catch (Exception e) {
+						JOptionPane.showMessageDialog(null, 
+							"Unknown error: " + e.getMessage() + ". Program will exit.",
+							"Initialization Error",
+							JOptionPane.ERROR_MESSAGE
+						);
+			
+						System.exit(-1);
+					} finally {
+						splash.setVisible(false);
+					}
+				} catch (Exception e) {}
 			}
-		} catch (Exception e) {}
-
-		final BDBMSplash splash = new BDBMSplash();
-		try {
-			splash.setVisible(true);
-
-			final GUI gui = new GUI();
-			final DefaultBDBMEnvironment env = gui.createBDBMEnvironment();
-
-			if (!checkRepositoryPaths(env, splash)) {
-				System.exit(10);
-			} else if (!checkBlastBinaries(env, splash)) {
-				System.exit(11);
-			} else if (!checkEmbossBinaries(env, splash)) {
-				System.exit(12);
-			} else if (!checkNcbiBinaries(env, splash)) {
-				System.exit(13);
-			} else {
-				gui.initGUI();
-				gui.showMainFrame();
-			}
-		} catch (FileNotFoundException fnfe) {
-			JOptionPane.showMessageDialog(null,
-				"Configuration file not found in path: "
-					+ new File("bdbm.conf").getAbsolutePath()
-					+ ". Program will exit.",
-				"Missing Configuration File",
-				JOptionPane.ERROR_MESSAGE
-			);
-
-			System.exit(1);
-		} catch (IllegalStateException ise) {
-			JOptionPane.showMessageDialog(null, 
-				ise.getMessage() + ". Program will exit.",
-				"Missing Property",
-				JOptionPane.ERROR_MESSAGE
-			);
-
-			System.exit(2);
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, 
-				"Unknown error: " + e.getMessage() + ". Program will exit.",
-				"Initialization Error",
-				JOptionPane.ERROR_MESSAGE
-			);
-
-			System.exit(-1);
-		} finally {
-			splash.setVisible(false);
-		}
+		});
 	}
 
 	private static boolean checkEmbossBinaries(final DefaultBDBMEnvironment env, final Component parent) throws IOException {

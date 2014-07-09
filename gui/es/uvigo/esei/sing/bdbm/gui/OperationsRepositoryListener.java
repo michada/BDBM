@@ -42,7 +42,7 @@ import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
-import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeObject;
+import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeNode;
 import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
@@ -260,8 +260,8 @@ public class OperationsRepositoryListener extends MouseAdapter {
 								"Database Entry", "database entry", tree, entry, 
 								e.getX(), e.getY()
 							);
-						} else if (node instanceof TextFileMutableTreeObject) {
-							final File file = ((TextFileMutableTreeObject) node).getFile();
+						} else if (node instanceof TextFileMutableTreeNode) {
+							final File file = ((TextFileMutableTreeNode<?>) node).getFile();
 							
 							if (file.isFile()) {
 								this.showPopupMenu(

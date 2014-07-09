@@ -9,11 +9,13 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTType;
+import es.uvigo.esei.sing.bdbm.fasta.FastaUtils;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
@@ -141,15 +143,50 @@ implements BLASTBinariesExecutor {
 			throw new IOException("Output directory could not be created: " + outDirectory);
 		}
 		
-		return AbstractBinariesExecutor.executeCommand(
-			LOG,
-			this.binaries.getBlast(blastType), 
-			"-query", queryFile.getAbsolutePath(),
-			"-db", database.getDirectory().getAbsolutePath(),
-			"-evalue", expectedValue.toPlainString(),
-			blastType.getFilterParam(), filter ? "yes" : "no",
-			"-out", outFile.getAbsolutePath()
-		);
+		final File[] subFastas = FastaUtils.splitFastaIntoFiles(queryFile);
+		if (subFastas.length == 1) {
+			return AbstractBinariesExecutor.executeCommand(
+				LOG,
+				this.binaries.getBlast(blastType), 
+				"-query", queryFile.getAbsolutePath(),
+				"-db", database.getDirectory().getAbsolutePath(),
+				"-evalue", expectedValue.toPlainString(),
+				blastType.getFilterParam(), filter ? "yes" : "no",
+				"-out", outFile.getAbsolutePath()
+			);
+		} else {
+			final StringBuilder sbOutput = new StringBuilder();
+			final StringBuilder sbError = new StringBuilder();
+			int exitStatus = 0;
+			
+			for (File fastaFile : subFastas) {
+				final File outTmpFile = File.createTempFile("bdbm", "out");
+				outTmpFile.deleteOnExit();
+				
+				final ExecutionResult result = AbstractBinariesExecutor.executeCommand(
+					LOG,
+					this.binaries.getBlast(blastType), 
+					"-query", fastaFile.getAbsolutePath(),
+					"-db", database.getDirectory().getAbsolutePath(),
+					"-evalue", expectedValue.toPlainString(),
+					blastType.getFilterParam(), filter ? "yes" : "no",
+					"-out", outTmpFile.getAbsolutePath()
+				);
+				
+				
+				if (result.getExitStatus() != 0)
+					exitStatus = result.getExitStatus();
+				sbOutput.append(result.getOutput()).append('\n');
+				sbError.append(result.getError()).append('\n');
+				
+				FileUtils.writeLines(outFile, FileUtils.readLines(outTmpFile), true);
+				
+				outTmpFile.delete();
+				fastaFile.delete();
+			}
+			
+			return new DefaultExecutionResult(exitStatus, sbOutput.toString(), sbOutput.toString());
+		}
 	}
 
 	@Override

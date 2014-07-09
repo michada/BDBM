@@ -5,12 +5,11 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -34,9 +33,7 @@ implements RepositoryManager<SE> {
 	protected CustomRepositoryWatcherListener listener;
 	
 	public AbstractRepositoryManager() {
-		this.listeners = Collections.synchronizedList(
-			new LinkedList<RepositoryListener>()
-		);
+		this.listeners = new CopyOnWriteArrayList<>();
 		
 		this.watcher = new PollingRepositoryWatcher();
 	}
@@ -247,7 +244,7 @@ implements RepositoryManager<SE> {
 			
 			if (file.equals(entity.getBaseFile())) {
 				final RepositoryEvent.Type type = event.getType() == RepositoryWatcherEvent.Type.CREATE ?
-					RepositoryEvent.Type.CREATE : RepositoryEvent.Type.DELETE; 
+					RepositoryEvent.Type.CREATE : RepositoryEvent.Type.DELETE;
 				
 				AbstractRepositoryManager.this.fireRepositoryChanged(entity, type);
 			} else if (event.getType() == RepositoryWatcherEvent.Type.DELETE) {
@@ -306,27 +303,18 @@ implements RepositoryManager<SE> {
 	}
 	
 	protected void fireRepositoryChanged(SequenceEntity entity, File changedFile) {
-		final List<RepositoryListener> listeners = new ArrayList<RepositoryListener>();
-		
-		synchronized(this.listeners) {
-			listeners.addAll(this.listeners);
-		}
-		
 		final RepositoryEvent event = new RepositoryEvent(entity, changedFile);
-		for (RepositoryListener listener : listeners) {
+		
+		for (RepositoryListener listener : this.listeners) {
 			listener.repositoryChanged(event);
 		}
 	}
 	
 	protected void fireRepositoryChanged(SequenceEntity entity, RepositoryEvent.Type type) {
-		final List<RepositoryListener> listeners = new ArrayList<RepositoryListener>();
+		final RepositoryEvent event = new RepositoryEvent(entity, type);
 		
-		synchronized(this.listeners) {
-			listeners.addAll(this.listeners);
-		}
-		
-		for (RepositoryListener listener : listeners) {
-			listener.repositoryChanged(new RepositoryEvent(entity, type));
+		for (RepositoryListener listener : this.listeners) {
+			listener.repositoryChanged(event);
 		}
 	}
 }

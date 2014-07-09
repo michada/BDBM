@@ -74,7 +74,7 @@ class PollingRepositoryWatchersPool {
 				final Map<File, List<PollingRepositoryWatcher>> watchedFiles = 
 					PollingRepositoryWatchersPool.this.getWatchedFiles();
 				
-				for (Map.Entry<File, List<PollingRepositoryWatcher>> entry : watchedFiles.entrySet()) {
+				for (Map.Entry<File, List<PollingRepositoryWatcher>> entry : new HashMap<>(watchedFiles).entrySet()) {
 					final File file = entry.getKey();
 					
 					if (!file.exists()) {

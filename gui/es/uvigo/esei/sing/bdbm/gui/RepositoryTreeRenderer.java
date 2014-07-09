@@ -7,6 +7,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeNode;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
@@ -25,6 +26,10 @@ class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
 		new ImageIcon(RepositoryTreeRenderer.class.getResource("images/search-entry.png"));
 	final static ImageIcon ICON_EXPORT = 
 		new ImageIcon(RepositoryTreeRenderer.class.getResource("images/export.png"));
+	final static ImageIcon ICON_EXPORT_OUTPUT = 
+			new ImageIcon(RepositoryTreeRenderer.class.getResource("images/output.png"));
+	final static ImageIcon ICON_SEQUENCE = 
+			new ImageIcon(RepositoryTreeRenderer.class.getResource("images/sequence.png"));
 
 	@Override
 	public Component getTreeCellRendererComponent(
@@ -32,7 +37,13 @@ class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
 		boolean sel, boolean expanded, boolean leaf, int row,
 		boolean hasFocus
 	) {
-		if (value instanceof DefaultMutableTreeNode) {
+		if (value instanceof TextFileMutableTreeNode) {
+			final TextFileMutableTreeNode<?> node = (TextFileMutableTreeNode<?>) value;
+			
+			this.setLeafIcon(node.getIcon());
+			this.setOpenIcon(node.getIcon());
+			this.setClosedIcon(node.getIcon());
+		} else if (value instanceof DefaultMutableTreeNode) {
 			final Object nodeValue = ((DefaultMutableTreeNode) value).getUserObject();
 			
 			if (nodeValue instanceof Fasta) {
@@ -59,6 +70,7 @@ class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
 			this.setOpenIcon(this.getDefaultOpenIcon());
 			this.setClosedIcon(this.getDefaultOpenIcon());
 		}
+		
 		return super.getTreeCellRendererComponent(
 			tree, value, sel, expanded, leaf, row, hasFocus
 		);

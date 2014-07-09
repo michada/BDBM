@@ -1,6 +1,7 @@
 package es.uvigo.esei.sing.bdbm.gui;
 
 import java.io.File;
+import java.util.Comparator;
 
 import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -11,8 +12,10 @@ import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
+import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
+import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry.Query;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SequenceEntity;
 
 public class RepositoryTreeModel extends DefaultTreeModel {
@@ -20,11 +23,12 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 
 	private final BDBMRepositoryManager repositoryManager;
 	
-	private final DefaultMutableTreeNode tnFasta;
-	private final DefaultMutableTreeNode tnDatabase;
-	private final DefaultMutableTreeNode tnSearchEntry;
-	private final DefaultMutableTreeNode tnExport;
+	private final SortedMutableTreeNode<String, Fasta> tnFasta;
+	private final SortedMutableTreeNode<String, Database> tnDatabase;
+	private final SortedMutableTreeNode<String, SearchEntry> tnSearchEntry;
+	private final SortedMutableTreeNode<String, Export> tnExport;
 	
+	@SuppressWarnings("unchecked")
 	public RepositoryTreeModel(
 		SequenceType sequenceType,
 		BDBMRepositoryManager repositoryManager
@@ -32,45 +36,36 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		super(createTreeNodes(sequenceType, repositoryManager));
 		this.repositoryManager = repositoryManager;
 		
-		this.tnFasta = (DefaultMutableTreeNode) this.getChild(this.getRoot(), 0);
-		this.tnDatabase = (DefaultMutableTreeNode) this.getChild(this.getRoot(), 1);
-		this.tnSearchEntry = (DefaultMutableTreeNode) this.getChild(this.getRoot(), 2);
-		this.tnExport = (DefaultMutableTreeNode) this.getChild(this.getRoot(), 3);
+		this.tnFasta = (SortedMutableTreeNode<String, Fasta>) this.getChild(this.getRoot(), 0);
+		this.tnDatabase = (SortedMutableTreeNode<String, Database>) this.getChild(this.getRoot(), 1);
+		this.tnSearchEntry = (SortedMutableTreeNode<String, SearchEntry>) this.getChild(this.getRoot(), 2);
+		this.tnExport = (SortedMutableTreeNode<String, Export>) this.getChild(this.getRoot(), 3);
 		
 		this.repositoryManager.fasta().addRepositoryListener(
-			new SynchronizationRepositoryListener(this, sequenceType, this.tnFasta)
+			new SynchronizationRepositoryListener<>(this, sequenceType, this.tnFasta)
 		);
 		this.repositoryManager.database().addRepositoryListener(
-			new SynchronizationRepositoryListener(this, sequenceType, this.tnDatabase)
+			new SynchronizationRepositoryListener<>(this, sequenceType, this.tnDatabase)
 		);
 		this.repositoryManager.searchEntry().addRepositoryListener(
-			new SynchronizationRepositoryListener(this, sequenceType, this.tnSearchEntry)
+			new SynchronizationRepositoryListener<>(this, sequenceType, this.tnSearchEntry)
 		);
 		this.repositoryManager.export().addRepositoryListener(
-			new SynchronizationRepositoryListener(this, sequenceType, this.tnExport)
+			new SynchronizationRepositoryListener<>(this, sequenceType, this.tnExport)
 		);
 	}
 	
-	void insertNode(DefaultMutableTreeNode parentNode, DefaultMutableTreeNode child, int childIndex) {
-		if (childIndex < 0) {
-			parentNode.add(child);
-			childIndex = parentNode.getChildCount() - 1;
-		} else {
-			parentNode.insert(child, childIndex);
-		}
+	<T, C> void insertNode(SortedMutableTreeNode<T, C> parentNode, TypedMutableTreeNode<C> child) {
+		final int index = parentNode.add(child);
 
 		this.fireTreeNodesInserted(
 			parentNode, parentNode.getPath(),
-			new int[] { childIndex }, 
+			new int[] { index }, 
 			new Object[] { child }
 		);
 	}
 	
-	void insertNode(DefaultMutableTreeNode parentNode, DefaultMutableTreeNode child) {
-		this.insertNode(parentNode, child, -1);
-	}
-	
-	void deleteNode(DefaultMutableTreeNode parentNode, DefaultMutableTreeNode child) {
+	<T, C> void deleteNode(SortedMutableTreeNode<T, C> parentNode, TypedMutableTreeNode<C> child) {
 		final int childIndex = parentNode.getIndex(child);
 		
 		parentNode.remove(childIndex);
@@ -82,18 +77,20 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		);
 	}
 	
-	void replaceNode(DefaultMutableTreeNode oldChild, DefaultMutableTreeNode newChild) {
+	<C> void replaceNode(TypedMutableTreeNode<C> oldChild, TypedMutableTreeNode<C> newChild) {
 		if (oldChild.getParent() instanceof DefaultMutableTreeNode) {
 			final DefaultMutableTreeNode parent = (DefaultMutableTreeNode) oldChild.getParent();
 			final int childIndex = parent.getIndex(oldChild);
 			
-			parent.remove(oldChild);
-			parent.insert(newChild, childIndex);
-			
-			this.fireTreeNodesChanged(
-				parent, parent.getPath(), 
-				new int[] { childIndex }, new Object[] { newChild }
-			);
+			if (childIndex != -1) {
+				parent.remove(oldChild);
+				parent.insert(newChild, childIndex);
+				
+				this.fireTreeNodesChanged(
+					parent, parent.getPath(), 
+					new int[] { childIndex }, new Object[] { newChild }
+				);
+			}
 		} else {
 			throw new IllegalArgumentException("old node must have a DefaultMutableTreeNode parent");
 		}
@@ -124,8 +121,10 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		return root;
 	}
 
-	private static MutableTreeNode createFastaNodes(Fasta[] fastas) {
-		final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Fasta Files");
+	private static SortedMutableTreeNode<String, Fasta> createFastaNodes(Fasta[] fastas) {
+		final SortedMutableTreeNode<String, Fasta> root = new SortedMutableTreeNode<>(
+			new SequenceEntityNameComparator<Fasta>(), "Fasta Files"
+		);
 		
 		for (Fasta fasta : fastas) {
 			root.add(createFastaNode(fasta));
@@ -134,8 +133,10 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		return root;
 	}
 	
-	private static MutableTreeNode createDatabaseNodes(Database[] databases) {
-		final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Databases");
+	private static SortedMutableTreeNode<String, Database> createDatabaseNodes(Database[] databases) {
+		final SortedMutableTreeNode<String, Database> root = new SortedMutableTreeNode<>(
+			new SequenceEntityNameComparator<Database>(), "Databases"
+		);
 		
 		for (Database database : databases) {
 			root.add(createDatabaseNode(database));
@@ -144,8 +145,10 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		return root;
 	}
 	
-	private static MutableTreeNode createSearchEntry(SearchEntry[] entries) {
-		final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Search Entries");
+	private static SortedMutableTreeNode<String, SearchEntry> createSearchEntry(SearchEntry[] entries) {
+		final SortedMutableTreeNode<String, SearchEntry> root = new SortedMutableTreeNode<>(
+			new SequenceEntityNameComparator<SearchEntry>(), "Search Entries"
+		);
 		
 		for (SearchEntry entry : entries) {
 			root.add(createSearchEntryNode(entry));
@@ -154,8 +157,10 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		return root;
 	}
 	
-	private static MutableTreeNode createExport(Export[] exports) {
-		final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Exports");
+	private static SortedMutableTreeNode<String, Export> createExport(Export[] exports) {
+		final SortedMutableTreeNode<String, Export> root = new SortedMutableTreeNode<>(
+			new SequenceEntityNameComparator<Export>(), "Exports"
+		);
 		
 		for (Export export : exports) {
 			root.add(createExportNode(export));
@@ -164,7 +169,7 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		return root;
 	}
 
-	static DefaultMutableTreeNode createSequenceEntityNode(SequenceEntity entity) 
+	static TypedMutableTreeNode<?> createSequenceEntityNode(SequenceEntity entity) 
 	throws IllegalArgumentException {
 		if (entity instanceof Fasta) {
 			return createFastaNode((Fasta) entity);
@@ -179,40 +184,77 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		}
 	}
 	
-	private static DefaultMutableTreeNode createFastaNode(Fasta fasta) {
-		return new TextFileMutableTreeObject(fasta, fasta.getFile(), RepositoryTreeRenderer.ICON_FASTA);
+	private static TypedMutableTreeNode<Fasta> createFastaNode(Fasta fasta) {
+		return new TextFileMutableTreeNode<>(
+			fasta, fasta.getFile(), RepositoryTreeRenderer.ICON_FASTA
+		);
 	}
 	
-	private static DefaultMutableTreeNode createDatabaseNode(Database database) {
-		return new DefaultMutableTreeNode(database);
+	private static TypedMutableTreeNode<Database> createDatabaseNode(Database database) {
+		return new TypedMutableTreeNode<Database>(database);
 	}
 	
-	private static DefaultMutableTreeNode createSearchEntryNode(SearchEntry entry) {
-		final DefaultMutableTreeNode node = new DefaultMutableTreeNode(entry);
+	private static SortedMutableTreeNode<SearchEntry, Query> createSearchEntryNode(SearchEntry entry) {
+		final SortedMutableTreeNode<SearchEntry, Query> node = 
+			new SortedMutableTreeNode<>(
+				new SequenceEntityNameComparator<Query>(), entry
+			);
 		
-		for (SearchEntry.Query query : entry.listQueries()) {
+		for (Query query : entry.listQueries()) {
 			node.add(createSearchEntryQuery(query));
 		}
 		
 		return node;
 	}
 
-	static TextFileMutableTreeObject createSearchEntryQuery(SearchEntry.Query query) {
-		return new TextFileMutableTreeObject(query, query.getBaseFile(), RepositoryTreeRenderer.ICON_SEARCH_ENTRY);
+	static TypedMutableTreeNode<Query> createSearchEntryQuery(Query query) {
+		return new TextFileMutableTreeNode<>(
+			query, query.getBaseFile(), RepositoryTreeRenderer.ICON_SEQUENCE
+		);
 	}
 
-	private static DefaultMutableTreeNode createExportNode(Export export) {
-		final DefaultMutableTreeNode node = new DefaultMutableTreeNode(export);
+	private static SortedMutableTreeNode<Export, ExportEntry> createExportNode(Export export) {
+		final SortedMutableTreeNode<Export, ExportEntry> node = 
+			new SortedMutableTreeNode<>(
+				new SequenceEntityNameComparator<ExportEntry>(), export
+			);
 		
-		for (Export.ExportEntry exportEntry : export.listEntries()) {
+		for (ExportEntry exportEntry : export.listEntries()) {
 			node.add(createExportEntryNode(exportEntry));
 		}
 		
 		return node;
 	}
 
-	static DefaultMutableTreeNode createExportEntryNode(Export.ExportEntry exportEntry) {
-		final DefaultMutableTreeNode nodeExportEntry = new DefaultMutableTreeNode(exportEntry);
+	static SortedMutableTreeNode<ExportEntry, String> createExportEntryNode(final ExportEntry exportEntry) {
+		final Comparator<String> comparator = new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				final File outFile = exportEntry.getOutFile();
+				
+				if (outFile.getName().equals(o1)) {
+					return -1;
+				} else if (outFile.getName().equals(o2)) {
+					return 1;
+				}
+				
+				final File summaryFile = exportEntry.getSummaryFastaFile();
+				if (summaryFile != null) {
+					if (summaryFile.getName().equals(o1)) {
+						return -1;
+					} else if (summaryFile.getName().equals(o2)) {
+						return 1;
+					}
+				}
+				
+				return String.CASE_INSENSITIVE_ORDER.compare(o1, o2);
+			}
+		};
+		
+		final SortedMutableTreeNode<ExportEntry, String> nodeExportEntry = 
+			new SortedMutableTreeNode<>(
+				comparator, exportEntry
+			);
 		
 		nodeExportEntry.add(createExportEntryOutFileNode(exportEntry.getOutFile()));
 		
@@ -223,41 +265,40 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		for (File txtFile : exportEntry.getSequenceFiles()) {
 			nodeExportEntry.add(createExportEntryTextFileNode(txtFile));
 		}
+		
 		return nodeExportEntry;
 	}
 	
-	static DefaultMutableTreeNode createExportEntryTextFileNode(File exportEntryFile) {
-		return new TextFileMutableTreeObject(exportEntryFile, RepositoryTreeRenderer.ICON_EXPORT);
+	static TextFileMutableTreeNode<String> createExportEntryTextFileNode(File exportEntryFile) {
+		return new TextFileMutableTreeNode<>(
+			exportEntryFile.getName(), exportEntryFile, RepositoryTreeRenderer.ICON_SEQUENCE
+		);
 	}
 	
-	static DefaultMutableTreeNode createExportEntryOutFileNode(File exportEntryFile) {
-		return new TextFileMutableTreeObject(exportEntryFile, RepositoryTreeRenderer.ICON_EXPORT);
+	static TextFileMutableTreeNode<String> createExportEntryOutFileNode(File exportEntryFile) {
+		return new TextFileMutableTreeNode<>(
+			exportEntryFile.getName(), exportEntryFile, RepositoryTreeRenderer.ICON_EXPORT_OUTPUT
+		);
 	}
 	
-	static DefaultMutableTreeNode createExportEntrySummaryFileNode(File exportEntryFile) {
-		return new TextFileMutableTreeObject(exportEntryFile, RepositoryTreeRenderer.ICON_EXPORT);
+	static TextFileMutableTreeNode<String> createExportEntrySummaryFileNode(File exportEntryFile) {
+		return new TextFileMutableTreeNode<>(
+			exportEntryFile.getName(), exportEntryFile, RepositoryTreeRenderer.ICON_FASTA
+		);
 	}
 	
-	public static class TextFileMutableTreeObject extends DefaultMutableTreeNode {
+	public static class TextFileMutableTreeNode<T> extends TypedMutableTreeNode<T> {
 		private static final long serialVersionUID = 1L;
 
 		private final File file;
 		private final Icon icon;
 		
-		public TextFileMutableTreeObject(File file) {
-			this(file.getName(), file, null);
-		}
-		
-		public TextFileMutableTreeObject(File file, Icon icon) {
-			this(file.getName(), file, icon);
-		}
-		
-		public TextFileMutableTreeObject(Object value, File file) {
+		public TextFileMutableTreeNode(T value, File file) {
 			this(value, file, null);
 		}
 		
-		public TextFileMutableTreeObject(Object value, File file, Icon icon) {
-			super(value);
+		public TextFileMutableTreeNode(T value, File file, Icon icon) {
+			super(value, false);
 			
 			this.file = file;
 			this.icon = icon;
@@ -269,6 +310,15 @@ public class RepositoryTreeModel extends DefaultTreeModel {
 		
 		public Icon getIcon() {
 			return this.icon;
+		}
+	}
+	
+	private static class SequenceEntityNameComparator<T extends SequenceEntity> implements Comparator<T> {
+		@Override
+		public int compare(T o1, T o2) {
+			if (o1 == null) return -1;
+			else if (o2 == null) return 1;
+			else return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
 		}
 	}
 }

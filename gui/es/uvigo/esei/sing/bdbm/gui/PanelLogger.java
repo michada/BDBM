@@ -18,13 +18,16 @@ public class PanelLogger extends JPanel implements Observer {
 		super(new BorderLayout());
 		
 		this.taLogger = new JTextArea();
+		this.taLogger.setCaretColor(Color.BLACK);
 		this.taLogger.setOpaque(true);
 		this.taLogger.setBackground(Color.BLACK);
 		this.taLogger.setForeground(Color.WHITE);
 		this.taLogger.setFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
 		this.taLogger.setEditable(false);
 		
-		this.add(new JScrollPane(this.taLogger), BorderLayout.CENTER);
+		final JScrollPane scrollPane = new JScrollPane(this.taLogger);
+		scrollPane.setBackground(Color.BLACK);
+		this.add(scrollPane, BorderLayout.CENTER);
 		
 		appender.addObserver(this);
 	}
