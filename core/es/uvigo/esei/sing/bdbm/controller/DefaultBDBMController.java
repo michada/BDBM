@@ -619,8 +619,8 @@ public class DefaultBDBMController implements BDBMController {
 
 	@Override
 	public NucleotideFasta splignCompart(
-		NucleotideFasta sourceFasta,
-		NucleotideDatabase sourceDB,
+		NucleotideFasta referenceFasta,
+		NucleotideDatabase referenceDB,
 		NucleotideFasta targetFasta,
 		NucleotideDatabase targetDB,
 		String outputName
@@ -631,13 +631,15 @@ public class DefaultBDBMController implements BDBMController {
 		if (fastaManager.exists(fasta)) {
 			throw new IllegalArgumentException("Fasta already exists: " + outputName);
 		} else {
-			final ExecutionResult result = this.ncbiBinariesExecutor.mergeDB(sourceFasta, sourceDB, targetFasta, targetDB, fasta);
+			final ExecutionResult result = this.ncbiBinariesExecutor.splignCompart(
+				referenceFasta, referenceDB, targetFasta, targetDB, fasta
+			);
 			
 			if (result.getExitStatus() != 0) {
 				if (fastaManager.exists(fasta))
 					fastaManager.delete(fasta);
 				
-				throw new ExecutionException(result.getExitStatus(), "Error executing mergeDB", "mergedb");
+				throw new ExecutionException(result.getExitStatus(), "Error executing splignCompart", "splignCompart");
 			} else {
 				return fasta;
 			}

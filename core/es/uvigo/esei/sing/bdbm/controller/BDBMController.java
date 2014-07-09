@@ -147,8 +147,8 @@ public interface BDBMController {
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
 	
 	public abstract NucleotideFasta splignCompart(
-		NucleotideFasta sourceFasta,
-		NucleotideDatabase sourceDB,
+		NucleotideFasta referenceFasta,
+		NucleotideDatabase referenceDB,
 		NucleotideFasta targetFasta,
 		NucleotideDatabase targetDB,
 		String outputName

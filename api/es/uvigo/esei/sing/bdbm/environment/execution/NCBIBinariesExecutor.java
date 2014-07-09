@@ -9,9 +9,11 @@ import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
 public interface NCBIBinariesExecutor extends BinariesExecutor<NCBIBinaries> {
 	public boolean checkNCBIBinaries(NCBIBinaries bBinaries);
 
-	public ExecutionResult mergeDB(
-		NucleotideFasta sourceFasta, NucleotideDatabase sourceDB, 
-		NucleotideFasta targetFasta, NucleotideDatabase targetDB, 
+	public ExecutionResult splignCompart(
+		NucleotideFasta referenceFasta, 
+		NucleotideDatabase referenceDB, 
+		NucleotideFasta targetFasta,
+		NucleotideDatabase targetDB, 
 		NucleotideFasta outputFasta
 	) throws InterruptedException, ExecutionException, IOException;
 }

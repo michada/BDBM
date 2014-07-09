@@ -60,15 +60,15 @@ implements NCBIBinariesExecutor {
 	}
 	
 	@Override
-	public ExecutionResult mergeDB(
-		NucleotideFasta sourceFasta,
-		NucleotideDatabase sourceDB,
-		NucleotideFasta targetFasta, 
-		NucleotideDatabase targetDB, 
+	public ExecutionResult splignCompart(
+		NucleotideFasta referenceFasta, 
+		NucleotideDatabase referenceDB, 
+		NucleotideFasta targetFasta,
+		NucleotideDatabase targetDB,
 		NucleotideFasta fasta
 	) throws InterruptedException, ExecutionException, IOException {
 		try (final DirectoryManager dirManager = new DirectoryManager(
-			sourceFasta, sourceDB, targetFasta, targetDB
+			referenceFasta, referenceDB, targetFasta, targetDB
 		)) {
 			ExecutionResult mkldsResult = AbstractBinariesExecutor.executeCommand(
 				LOG,
@@ -87,8 +87,8 @@ implements NCBIBinariesExecutor {
 				false,
 				Arrays.asList(dirManager.getCompartmentsCallback()),
 				this.binaries.getCompart(), 
-				"-qdb", dirManager.getSourceFastaPath(),
-				"-sdb", dirManager.getTargetFastaPath()
+				"-qdb", dirManager.getTargetFastaPath(),
+				"-sdb", dirManager.getReferenceFastaPath()
 			);
 			if (compartResult.getExitStatus() != 0) {
 				return compartResult;
@@ -117,7 +117,7 @@ implements NCBIBinariesExecutor {
 				false,
 				this.binaries.getBedtools(),
 				"getfasta", 
-				"-fi", dirManager.getTargetFastaPath(),
+				"-fi", dirManager.getReferenceFastaPath(),
 				"-bed", dirManager.getBedPath(),
 				"-fo", fasta.getFile().getAbsolutePath(),
 				"-name"
@@ -209,93 +209,31 @@ implements NCBIBinariesExecutor {
 		
 		Files.move(tempFasta.toPath(), fasta.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
 	}
-
-//	private static void mergeSequences(NucleotideFasta fasta)
-//	throws IOException, FileNotFoundException {
-//		final File tempFasta = File.createTempFile("bdbm", "fasta");
-//		tempFasta.deleteOnExit();
-//		
-//		try (BufferedReader br = new BufferedReader(new FileReader(fasta.getFile()), 4*1024*1024);
-//			PrintWriter pw = new PrintWriter(tempFasta)
-//		) {
-//			String lastName = null;
-//			StringBuilder lastSequence = null;
-//			String currentName = null;
-//			StringBuilder currentSequence = null;
-//			
-//			String line;
-//			boolean end = false;
-//			do {
-//				currentName = br.readLine();
-//				if (currentName == null || !currentName.startsWith(">"))
-//					throw new IOException("Illegal fasta format in file: " + fasta.getFile().getAbsolutePath());
-//				
-//				currentSequence = new StringBuilder();
-//				while (true) {
-//					br.mark(4*1024*1024);
-//					line = br.readLine();
-//					
-//					if (line == null) {
-//						end = true;
-//						break;
-//					} else if (line.startsWith(">")) {
-//						br.reset();
-//						break;
-//					} else {
-//						currentSequence.append(line);
-//					}
-//				}
-//				
-//				if (currentSequence.length() == 0)
-//					throw new IOException("Illegal fasta format in file: " + fasta.getFile().getAbsolutePath());
-//				
-//				if (lastName == null && lastSequence == null) {
-//					lastName = currentName;
-//					lastSequence = currentSequence;
-//				} else if (lastName.equals(currentName)) {
-//					lastSequence.append(currentSequence);
-//				} else {
-//					pw.println(lastName);
-//					pw.println(lastSequence);
-//					
-//					lastName = currentName;
-//					lastSequence = currentSequence;
-//				}
-//			} while (!end);
-//			
-//			if (lastName != null && lastSequence != null) {
-//				pw.println(lastName);
-//				pw.println(lastSequence);
-//			}
-//		}
-//		
-//		Files.move(tempFasta.toPath(), fasta.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
-//	}
 	
 	private static class DirectoryManager implements AutoCloseable {
 		private final Path workingDirectory;
-		private final Path sourceFastaFile;
 		private final Path targetFastaFile;
+		private final Path referenceFastaFile;
 		private Path compartmentsFile;
 		private Path ldsdirFile;
 		private Path bedFile;
 		
 		public DirectoryManager(
-			NucleotideFasta sourceFasta,
-			NucleotideDatabase sourceDB,
+			NucleotideFasta referenceFasta,
+			NucleotideDatabase referenceDB,
 			NucleotideFasta targetFasta,
 			NucleotideDatabase targetDB
 		) throws IOException {
-			this.workingDirectory = Files.createTempDirectory("bdbm_mergeDB");
-			final Path sourceFastaPath = sourceFasta.getFile().toPath();
+			this.workingDirectory = Files.createTempDirectory("bdbm_spligncompart");
 			final Path targetFastaPath = targetFasta.getFile().toPath();
+			final Path referenceFastaPath = referenceFasta.getFile().toPath();
 			
-			this.sourceFastaFile = this.workingDirectory.resolve("source");
+			this.referenceFastaFile = this.workingDirectory.resolve("reference");
 			this.targetFastaFile = this.workingDirectory.resolve("target");
 			
-			this.createSymlinksToDirFiles(sourceDB.getDirectory().getParentFile().toPath(), "source");
+			this.createSymlinksToDirFiles(referenceDB.getDirectory().getParentFile().toPath(), "reference");
 			this.createSymlinksToDirFiles(targetDB.getDirectory().getParentFile().toPath(), "target");
-			Files.createSymbolicLink(this.sourceFastaFile, sourceFastaPath);
+			Files.createSymbolicLink(this.referenceFastaFile, referenceFastaPath);
 			Files.createSymbolicLink(this.targetFastaFile, targetFastaPath);
 		}
 		
@@ -347,12 +285,12 @@ implements NCBIBinariesExecutor {
 			return workingDirectory.toString();
 		}
 		
-		public String getSourceFastaPath() {
-			return sourceFastaFile.toString();
-		}
-		
 		public String getTargetFastaPath() {
 			return targetFastaFile.toString();
+		}
+		
+		public String getReferenceFastaPath() {
+			return referenceFastaFile.toString();
 		}
 		
 		@Override
