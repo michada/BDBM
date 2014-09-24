@@ -1,4 +1,4 @@
-package es.uvigo.esei.sing.bdbm.gui;
+package es.uvigo.esei.sing.bdbm.gui.repository;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,7 +8,7 @@ import java.util.Vector;
 
 import javax.swing.tree.MutableTreeNode;
 
-public class SortedMutableTreeNode<T, C> extends TypedMutableTreeNode<T> {
+class SortedMutableTreeNode<T, C> extends TypedMutableTreeNode<T> {
 	private static final long serialVersionUID = 1L;
 
 	private final Comparator<C> comparator;
@@ -30,7 +30,12 @@ public class SortedMutableTreeNode<T, C> extends TypedMutableTreeNode<T> {
 	
 	@SuppressWarnings("unchecked")
 	public List<TypedMutableTreeNode<C>> getChildNodes() {
-		return new ArrayList<>(this.children);
+		final List<TypedMutableTreeNode<C>> childrenList = new ArrayList<>();
+		
+		if (this.children != null)
+			childrenList.addAll(this.children);
+
+		return childrenList;
 	}
 
 	public void add(C userObject) {
@@ -44,9 +49,12 @@ public class SortedMutableTreeNode<T, C> extends TypedMutableTreeNode<T> {
 			throw new IllegalArgumentException("new child is null");
 		} else if (isNodeAncestor(newChild)) {
 			throw new IllegalArgumentException("new child is an ancestor");
+		} else if (alreadyContainsChild(newChild)) {
+			//TODO: This should not be needed, but Export nodes were being duplicated when inserted.
+			throw new IllegalArgumentException("new child is already child of this node");
 		}
 
-		MutableTreeNode oldParent = (MutableTreeNode) newChild.getParent();
+		final MutableTreeNode oldParent = (MutableTreeNode) newChild.getParent();
 
 		if (oldParent != null) {
 			oldParent.remove(newChild);
@@ -74,6 +82,23 @@ public class SortedMutableTreeNode<T, C> extends TypedMutableTreeNode<T> {
 		}
 	}
 	
+	private boolean alreadyContainsChild(TypedMutableTreeNode<C> newChild) {
+		if (this.children == null) {
+			return false;
+		} else {
+			@SuppressWarnings("unchecked")
+			final Vector<TypedMutableTreeNode<C>> typedChildren = this.children;
+			
+			for (TypedMutableTreeNode<C> child : typedChildren) {
+				if (child.getUserObject().equals(newChild.getUserObject())) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+	}
+
 	@Override
 	public void insert(MutableTreeNode newChild, int childIndex) {
 		throw new UnsupportedOperationException();

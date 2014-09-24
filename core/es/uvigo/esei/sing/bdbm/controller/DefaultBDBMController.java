@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -14,8 +17,9 @@ import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionResult;
 import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
-import es.uvigo.esei.sing.bdbm.fasta.DefaultFastaParser;
-import es.uvigo.esei.sing.bdbm.fasta.FastaParserAdapter;
+import es.uvigo.esei.sing.bdbm.fasta.FastaParseException;
+import es.uvigo.esei.sing.bdbm.fasta.FastaUtils;
+import es.uvigo.esei.sing.bdbm.fasta.FastaUtils.RenameMode;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.DatabaseRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
@@ -596,7 +600,7 @@ public class DefaultBDBMController implements BDBMController {
 		int maxSize,
 		boolean noNewLines,
 		String outputName
-	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
+	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException {
 		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
 		final NucleotideFasta orf = fastaManager.getNucleotide(outputName);
 		
@@ -606,7 +610,7 @@ public class DefaultBDBMController implements BDBMController {
 			try {
 				this.embossBinariesExecutor.executeGetORF(fasta, orf, minSize, maxSize);
 				if (noNewLines) {
-					reformatFasta(orf);
+					this.reformatFasta(RenameMode.NONE, orf, 0, null);
 				}
 				
 				return orf;
@@ -624,7 +628,7 @@ public class DefaultBDBMController implements BDBMController {
 		NucleotideFasta cdsFasta,
 		NucleotideDatabase cdsDB,
 		String outputName
-	) throws IOException, InterruptedException, ExecutionException, IllegalStateException {
+	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException {
 		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
 		final NucleotideFasta fasta = fastaManager.getNucleotide(outputName);
 		
@@ -646,55 +650,38 @@ public class DefaultBDBMController implements BDBMController {
 		}
 	}
 	
-	@Override
-	public void reformatFasta(Fasta fasta) throws IOException {
-		this.reformatFasta(fasta, 0);
-	}
-	
-	@Override
-	public void reformatFasta(Fasta fasta, final int fragmentLength) throws IOException {
-		final File tmpFile = File.createTempFile("bdbm", "fasta");
-		tmpFile.deleteOnExit();
+	public void reformatFasta(RenameMode mode, Fasta fasta, int fragmentLength, Object additionalParameters) 
+	throws FastaParseException ,IOException {
+		final Path tmpPath = Files.createTempFile("bdbm", "rename.fasta");
 		
-		try (final PrintWriter pw = new PrintWriter(tmpFile)) {
-			final DefaultFastaParser parser = new DefaultFastaParser();
-			parser.addParseListener(new FastaParserAdapter() {
-				String name;
-				StringBuilder sequence = new StringBuilder();
-				
-				@Override
-				public void sequenceNameRead(File file, String sequenceName) {
-					name = sequenceName;
-				}
-				
-				@Override
-				public void sequenceFragmentRead(File file, String fragment) {
-					sequence.append(fragment);
-				}
-				
-				@Override
-				public void sequenceEnd(File file) {
-					pw.println(name);
-					
-					if (fragmentLength <= 0 || fragmentLength > sequence.length()) {
-						pw.println(sequence);
-					} else {
-						for (int i = 0; i < sequence.length(); i += fragmentLength) {
-							final int endIndex = Math.min(sequence.length(), i + fragmentLength);
-							pw.println(sequence.substring(i, endIndex));
-						}
-					}
-					
-					pw.flush();
-					name = null;
-					sequence = new StringBuilder();
-				}
-			});
-			
-			parser.parse(fasta.getFile());
+		try (final PrintWriter writer = new PrintWriter(tmpPath.toFile())) {
+			FastaUtils.fastaSequenceRenaming(mode, fasta.getFile(), fragmentLength, writer, additionalParameters);
 		}
 		
-		fasta.getFile().delete();
-		FileUtils.moveFile(tmpFile, fasta.getFile());
+		Files.move(tmpPath, fasta.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+	};
+
+	@Override
+	public void mergeFastas(Fasta[] fastas, String outputFastaName) throws FastaParseException, IOException {
+		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
+		final Fasta outputFasta = fastas[0] instanceof NucleotideFasta ?
+			fastaManager.createNucleotide(outputFastaName):
+			fastaManager.createProtein(outputFastaName);
+			
+		if (fastaManager.exists(outputFasta)) {
+			throw new IllegalArgumentException("Fasta file already exists: " + outputFastaName);
+		} else {
+			try {
+				final File[] fastaFiles = new File[fastas.length];
+				for (int i = 0; i < fastas.length; i++) {
+					fastaFiles[i] = fastas[i].getFile();
+				}
+				
+				FastaUtils.mergeFastas(fastaFiles, outputFasta.getFile());
+			} finally {
+				if (!fastaManager.exists(outputFasta))
+					fastaManager.delete(outputFasta);
+			}
+		}
 	}
 }

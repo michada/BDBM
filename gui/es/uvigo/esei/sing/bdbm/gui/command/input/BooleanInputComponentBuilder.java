@@ -12,7 +12,7 @@ import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 public class BooleanInputComponentBuilder implements InputComponentBuilder {
 	@Override
 	public boolean canHandle(Option<?> option) {
-		return option.getConverter().getTargetClass().equals(Boolean.class);
+		return Boolean.class.equals(option.getConverter().getTargetClass());
 	}
 	
 	@Override

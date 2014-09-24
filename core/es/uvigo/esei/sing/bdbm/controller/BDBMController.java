@@ -9,6 +9,8 @@ import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
 import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.fasta.FastaParseException;
+import es.uvigo.esei.sing.bdbm.fasta.FastaUtils.RenameMode;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.EntityAlreadyExistsException;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
@@ -144,7 +146,7 @@ public interface BDBMController {
 		int minSize, int maxSize, 
 		boolean noNewLine,
 		String outputName
-	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
+	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException;
 	
 	public abstract NucleotideFasta splignCompart(
 		NucleotideFasta genomeFasta,
@@ -152,8 +154,11 @@ public interface BDBMController {
 		NucleotideFasta cdsFasta,
 		NucleotideDatabase cdsDB,
 		String outputName
-	) throws IOException, InterruptedException, ExecutionException, IllegalStateException;
+	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException;
 	
-	public abstract void reformatFasta(Fasta fasta) throws IOException;
-	public abstract void reformatFasta(Fasta fasta, int fragmentLength) throws IOException;
+	public void reformatFasta(
+		RenameMode mode, Fasta fasta, int fragmentLength, Object additionalParameters
+	) throws FastaParseException, IOException;
+	
+	public abstract void mergeFastas(Fasta[] fastas, String outputFasta) throws FastaParseException, IOException;
 }

@@ -3,6 +3,7 @@ package es.uvigo.esei.sing.bdbm.environment.execution;
 import java.io.IOException;
 
 import es.uvigo.esei.sing.bdbm.environment.binaries.NCBIBinaries;
+import es.uvigo.esei.sing.bdbm.fasta.FastaParseException;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
 
@@ -15,5 +16,5 @@ public interface NCBIBinariesExecutor extends BinariesExecutor<NCBIBinaries> {
 		NucleotideFasta cdsFasta,
 		NucleotideDatabase cdsDB, 
 		NucleotideFasta outputFasta
-	) throws InterruptedException, ExecutionException, IOException;
+	) throws InterruptedException, ExecutionException, IOException, FastaParseException;
 }

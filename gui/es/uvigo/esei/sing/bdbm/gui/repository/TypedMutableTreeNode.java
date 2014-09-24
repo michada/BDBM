@@ -1,8 +1,8 @@
-package es.uvigo.esei.sing.bdbm.gui;
+package es.uvigo.esei.sing.bdbm.gui.repository;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public class TypedMutableTreeNode<T> extends DefaultMutableTreeNode {
+class TypedMutableTreeNode<T> extends DefaultMutableTreeNode {
 	private static final long serialVersionUID = 1L;
 	
 	public TypedMutableTreeNode() {

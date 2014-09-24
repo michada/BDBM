@@ -1,4 +1,4 @@
-package es.uvigo.esei.sing.bdbm.gui;
+package es.uvigo.esei.sing.bdbm.gui.repository;
 
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -8,7 +8,12 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class FileChangeWatcherRunnable implements Runnable {
+	private final static Logger LOG = LoggerFactory.getLogger(FileChangeWatcherRunnable.class);
+	
 	protected final Path file;
 	
 	public FileChangeWatcherRunnable(File file) 
@@ -56,6 +61,8 @@ public abstract class FileChangeWatcherRunnable implements Runnable {
 			    
 			    wk.reset();
 			}
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			LOG.error("WatchService error", e);
+		}
 	}
 }

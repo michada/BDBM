@@ -7,15 +7,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTType;
-import es.uvigo.esei.sing.bdbm.fasta.FastaUtils;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;
@@ -143,8 +143,8 @@ implements BLASTBinariesExecutor {
 			throw new IOException("Output directory could not be created: " + outDirectory);
 		}
 		
-		final File[] subFastas = FastaUtils.splitFastaIntoFiles(queryFile);
-		if (subFastas.length == 1) {
+//		final File[] subFastas = FastaUtils.splitFastaIntoFiles(queryFile);
+//		if (subFastas.length == 1) {
 			return AbstractBinariesExecutor.executeCommand(
 				LOG,
 				this.binaries.getBlast(blastType), 
@@ -154,39 +154,39 @@ implements BLASTBinariesExecutor {
 				blastType.getFilterParam(), filter ? "yes" : "no",
 				"-out", outFile.getAbsolutePath()
 			);
-		} else {
-			final StringBuilder sbOutput = new StringBuilder();
-			final StringBuilder sbError = new StringBuilder();
-			int exitStatus = 0;
-			
-			for (File fastaFile : subFastas) {
-				final File outTmpFile = File.createTempFile("bdbm", "out");
-				outTmpFile.deleteOnExit();
-				
-				final ExecutionResult result = AbstractBinariesExecutor.executeCommand(
-					LOG,
-					this.binaries.getBlast(blastType), 
-					"-query", fastaFile.getAbsolutePath(),
-					"-db", database.getDirectory().getAbsolutePath(),
-					"-evalue", expectedValue.toPlainString(),
-					blastType.getFilterParam(), filter ? "yes" : "no",
-					"-out", outTmpFile.getAbsolutePath()
-				);
-				
-				
-				if (result.getExitStatus() != 0)
-					exitStatus = result.getExitStatus();
-				sbOutput.append(result.getOutput()).append('\n');
-				sbError.append(result.getError()).append('\n');
-				
-				FileUtils.writeLines(outFile, FileUtils.readLines(outTmpFile), true);
-				
-				outTmpFile.delete();
-				fastaFile.delete();
-			}
-			
-			return new DefaultExecutionResult(exitStatus, sbOutput.toString(), sbOutput.toString());
-		}
+//		} else {
+//			final StringBuilder sbOutput = new StringBuilder();
+//			final StringBuilder sbError = new StringBuilder();
+//			int exitStatus = 0;
+//			
+//			for (File fastaFile : subFastas) {
+//				final File outTmpFile = File.createTempFile("bdbm", "out");
+//				outTmpFile.deleteOnExit();
+//				
+//				final ExecutionResult result = AbstractBinariesExecutor.executeCommand(
+//					LOG,
+//					this.binaries.getBlast(blastType), 
+//					"-query", fastaFile.getAbsolutePath(),
+//					"-db", database.getDirectory().getAbsolutePath(),
+//					"-evalue", expectedValue.toPlainString(),
+//					blastType.getFilterParam(), filter ? "yes" : "no",
+//					"-out", outTmpFile.getAbsolutePath()
+//				);
+//				
+//				
+//				if (result.getExitStatus() != 0)
+//					exitStatus = result.getExitStatus();
+//				sbOutput.append(result.getOutput()).append('\n');
+//				sbError.append(result.getError()).append('\n');
+//				
+//				FileUtils.writeLines(outFile, FileUtils.readLines(outTmpFile), true);
+//				
+//				outTmpFile.delete();
+//				fastaFile.delete();
+//			}
+//			
+//			return new DefaultExecutionResult(exitStatus, sbOutput.toString(), sbOutput.toString());
+//		}
 	}
 
 	@Override
@@ -365,25 +365,19 @@ implements BLASTBinariesExecutor {
 	@Override
 	public List<String> extractSignificantSequences(ExportEntry entry) 
 	throws IOException {
-		final List<String> alignments = new ArrayList<String>();
+		final Set<String> alignments = new HashSet<>();
 		
-		BufferedReader br = null;
-		
-		try {
-			br = new BufferedReader(new FileReader(entry.getOutFile()));
-			
+		try (BufferedReader br = new BufferedReader(new FileReader(entry.getOutFile()));) {
 			String line;
 			boolean startFound = false;
 			while ((line = br.readLine()) != null) {
 				if (startFound) {
-					if (line.trim().isEmpty()|| 
-						!(line.contains("|") && line.contains(" ")))
-						continue;
-					if (line.startsWith(">")) break;
-					
-					
-					final String sequence = line.substring(line.indexOf('|') + 1, line.indexOf(' '));
-					alignments.add(sequence);
+					if (line.startsWith("lcl|")) {
+						final String sequence = line.substring(line.indexOf('|') + 1, line.indexOf(' '));
+						alignments.add(sequence);
+					} else if (line.startsWith(">lcl")) {
+						startFound = false;
+					}
 				} else {
 					startFound = line.startsWith("Sequences producing significant alignments");
 				}
@@ -394,15 +388,8 @@ implements BLASTBinariesExecutor {
 		} catch (IOException e) {
 			LOG.warn("Error reading file: " + entry.getOutFile(), e);
 			throw e;
-		} finally {
-			if (br != null)
-				try {
-					br.close();
-				} catch (IOException e) {
-					LOG.warn("Error closing reader for file: " + entry.getOutFile(), e);
-				}
 		}
 		
-		return alignments;
+		return new ArrayList<>(alignments);
 	}
 }

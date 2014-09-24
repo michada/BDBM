@@ -3,11 +3,11 @@ package es.uvigo.esei.sing.bdbm.gui.command.input;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 import javax.swing.JCheckBox;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,11 +38,43 @@ public class DefaultInputComponentBuilder implements InputComponentBuilder {
 			if (receiver.hasOption(option)) {
 				txt.setText(receiver.getValue(option));
 			}
+//			
+//			final KeyAdapter txtListener = new KeyAdapter() {
+//				@Override
+//				public void keyReleased(KeyEvent e) {
+//					try {
+//						final JTextField txt = (JTextField) e.getComponent();
+//						
+//						if (txt.getText().isEmpty()) {
+//							receiver.removeValue(option);
+//						} else {
+//							receiver.setValue(option, txt.getText());
+//						}
+//					} catch (Exception ex) {
+//						LOG.error("Error setting option value", ex);
+//					}
+//				}
+//			};
 			
-			final KeyAdapter txtListener = new KeyAdapter() {
+			final DocumentListener docListener = new DocumentListener() {
 				@Override
-				public void keyReleased(KeyEvent e) {
+				public void removeUpdate(DocumentEvent e) {
+					updateReceiver();
+				}
+				
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					updateReceiver();
+				}
+				
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+					updateReceiver();
+				}
+
+				public void updateReceiver() {
 					try {
+						System.out.println(txt.getText());
 						if (txt.getText().isEmpty()) {
 							receiver.removeValue(option);
 						} else {
@@ -54,8 +86,11 @@ public class DefaultInputComponentBuilder implements InputComponentBuilder {
 				}
 			};
 			
-			txtListener.keyReleased(null);
-			txt.addKeyListener(txtListener);
+			docListener.changedUpdate(null);
+			txt.getDocument().addDocumentListener(docListener);
+			
+//			txtListener.keyReleased(null);
+//			txt.addKeyListener(txtListener);
 			
 			return txt;
 		} else {

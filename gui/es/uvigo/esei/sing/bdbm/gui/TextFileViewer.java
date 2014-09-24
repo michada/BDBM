@@ -7,13 +7,12 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -27,13 +26,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
-
-import org.apache.commons.io.FileUtils;
 
 import say.swing.JFontChooser;
 
@@ -45,13 +40,20 @@ public class TextFileViewer extends JPanel {
 	private final JTextArea textArea;
 	private final JTextField txtSearch;
 	private final JCheckBox chkRegularExpression;
-	private final Highlighter.HighlightPainter highlightPatiner;
+	private final Highlighter.HighlightPainter highlightPainter;
 	private final JFontChooser fontChooser;
 	
 	private final File file;
-	private boolean wasModified = false;
+//	private boolean wasModified = false;
 
 	private final long fileSize;
+	
+	private final LinkedList<FoundLocation> foundLocations;
+	private FoundLocation currentLocation;
+
+	private final JButton btnNext;
+
+	private final JButton btnPrevious;
 	
 	public TextFileViewer(File file) throws IOException {
 		super(new BorderLayout());
@@ -73,7 +75,7 @@ public class TextFileViewer extends JPanel {
 		this.textArea.setWrapStyleWord(true);
 		this.textArea.setEditable(false);
 		
-		this.highlightPatiner = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+		this.highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.ORANGE);
 		
 		// OPTIONS PANEL
 		final JPanel panelOptions = new JPanel(new BorderLayout());
@@ -82,10 +84,15 @@ public class TextFileViewer extends JPanel {
 		final JCheckBox chkLineWrap = new JCheckBox("Line wrap", true);
 		final JButton btnChangeFont = new JButton("Change Font");
 		
+		this.foundLocations = new LinkedList<>();
 		final JLabel lblSearch = new JLabel("Search");
 		this.txtSearch = new JTextField();
 		this.chkRegularExpression = new JCheckBox("Reg. exp.", true);
 		final JButton btnSearch = new JButton("Search");
+		this.btnNext = new JButton("Next");
+		this.btnNext.setEnabled(false);
+		this.btnPrevious = new JButton("Previous");
+		this.btnPrevious.setEnabled(false);
 		final JButton btnClear = new JButton("Clear");
 		this.txtSearch.setColumns(12);
 		
@@ -96,6 +103,8 @@ public class TextFileViewer extends JPanel {
 		panelOptionsEast.add(this.chkRegularExpression);
 		panelOptionsEast.add(btnSearch);
 		panelOptionsEast.add(btnClear);
+		panelOptionsEast.add(btnPrevious);
+		panelOptionsEast.add(btnNext);
 		
 		panelOptions.add(panelOptionsWest, BorderLayout.WEST);
 		panelOptions.add(panelOptionsEast, BorderLayout.EAST);
@@ -123,36 +132,36 @@ public class TextFileViewer extends JPanel {
 			}
 		});
 		
-		this.textArea.getDocument().addDocumentListener(new DocumentListener() {
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				TextFileViewer.this.wasModified = true;
-			}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				TextFileViewer.this.wasModified = true;
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				TextFileViewer.this.wasModified = true;
-			}
-		});
-		
-		this.textArea.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (TextFileViewer.this.wasModified) {
-					try {
-						FileUtils.write(TextFileViewer.this.file, TextFileViewer.this.textArea.getText());
-						TextFileViewer.this.wasModified = false;
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
-		});
+//		this.textArea.getDocument().addDocumentListener(new DocumentListener() {
+//			@Override
+//			public void removeUpdate(DocumentEvent e) {
+//				TextFileViewer.this.wasModified = true;
+//			}
+//			
+//			@Override
+//			public void insertUpdate(DocumentEvent e) {
+//				TextFileViewer.this.wasModified = true;
+//			}
+//			
+//			@Override
+//			public void changedUpdate(DocumentEvent e) {
+//				TextFileViewer.this.wasModified = true;
+//			}
+//		});
+//		
+//		this.textArea.addFocusListener(new FocusAdapter() {
+//			@Override
+//			public void focusLost(FocusEvent e) {
+//				if (TextFileViewer.this.wasModified) {
+//					try {
+//						FileUtils.write(TextFileViewer.this.file, TextFileViewer.this.textArea.getText());
+//						TextFileViewer.this.wasModified = false;
+//					} catch (IOException e1) {
+//						e1.printStackTrace();
+//					}
+//				}
+//			}
+//		});
 		
 		final ActionListener alSearch = new ActionListener() {
 			@Override
@@ -169,22 +178,145 @@ public class TextFileViewer extends JPanel {
 				clearSearch();
 			}
 		});
+		
+		btnNext.addActionListener(new MoveToLocationActionListener() {
+			@Override
+			protected boolean isThereAnyMore() {
+				return isCurrentTheLastLocation();
+			}
+			
+			@Override
+			protected FoundLocation popLocation() {
+				return popNextLocation();
+			}
+		});
+		
+		btnPrevious.addActionListener(new MoveToLocationActionListener() {
+			@Override
+			protected boolean isThereAnyMore() {
+				return isCurrentTheFirstLocation();
+			}
+			
+			@Override
+			protected FoundLocation popLocation() {
+				return popPreviousLocation();
+			}
+		});
 	}
 	
-	public void setEditable(boolean editable) {
-		this.textArea.setEditable(editable);
+	private FoundLocation popNextLocation() {
+		if (this.foundLocations.isEmpty()) {
+			return null;
+		} else if (this.isCurrentTheLastLocation()) {
+			this.currentLocation = null;
+			
+			return null;
+		} else {
+			final int indexOfCurrentLocation = this.foundLocations.indexOf(this.currentLocation);
+			this.currentLocation = this.foundLocations.get(indexOfCurrentLocation + 1);
+			
+			return this.currentLocation;
+		}
 	}
 	
-	public boolean isEditable() {
-		return this.textArea.isEditable();
+	private FoundLocation popPreviousLocation() {
+		if (this.foundLocations.isEmpty()) {
+			return null;
+		} else if (this.isCurrentTheFirstLocation()) {
+			this.currentLocation = null;
+			
+			return null;
+		} else {
+			final int indexOfCurrentLocation = this.foundLocations.indexOf(this.currentLocation);
+			this.currentLocation = this.foundLocations.get(indexOfCurrentLocation - 1);
+			
+			return this.currentLocation;
+		}
 	}
+	
+	private boolean isCurrentTheLastLocation() {
+		if (this.currentLocation == null || this.foundLocations.isEmpty()) {
+			return false;
+		} else {
+			return this.foundLocations.getLast().equals(this.currentLocation);
+		}
+	}
+	
+	private boolean isCurrentTheFirstLocation() {
+		if (this.currentLocation == null || this.foundLocations.isEmpty()) {
+			return false;
+		} else {
+			return this.foundLocations.getFirst().equals(this.currentLocation);
+		}
+	}
+	
+//	public void setEditable(boolean editable) {
+//		this.textArea.setEditable(editable);
+//	}
+//	
+//	public boolean isEditable() {
+//		return this.textArea.isEditable();
+//	}
 	
 	public String getText() {
 		return textArea.getText();
 	}
 	
+	private abstract class MoveToLocationActionListener implements
+			ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (foundLocations.isEmpty()) {
+				// Inconsistent state
+			} else if (isThereAnyMore()) {
+				// Inconsistent state
+			} else {
+				if (popLocation() != null) {
+//					try {
+//						textArea.getLineStartOffset(currentLocation.getStart());
+//		                // Scroll to make the rectangle visible
+//		                textArea.scrollRectToVisible(textArea.modelToView(currentLocation.getStart()));
+		                // Highlight the text
+		                textArea.setCaretPosition(currentLocation.getStart());
+		                textArea.moveCaretPosition(currentLocation.getEnd());
+//		                textArea.setCaretPosition(textArea.getLineOfOffset(currentLocation.getStart()));
+//		                textArea.setSelectionStart(currentLocation.getStart());
+//		                textArea.setSelectionEnd(currentLocation.getEnd());
+//					} catch (BadLocationException e1) {
+//						e1.printStackTrace();
+//					}
+				}
+			}
+			
+			btnNext.setEnabled(!isCurrentTheLastLocation());
+			btnPrevious.setEnabled(!isCurrentTheFirstLocation());
+		}
+		
+		protected abstract boolean isThereAnyMore();
+		protected abstract FoundLocation popLocation();
+	}
+
+	private static class FoundLocation {
+		private final int start, end;
+
+		public FoundLocation(int start, int end) {
+			this.start = start;
+			this.end = end;
+		}
+
+		public int getStart() {
+			return start;
+		}
+
+		public int getEnd() {
+			return end;
+		}
+	}
+	
 	private void updateSearch() {
 		textArea.getHighlighter().removeAllHighlights();
+		this.foundLocations.clear();
+		this.currentLocation = null;
 		
 		final String textToFind = txtSearch.getText();
 		
@@ -200,8 +332,10 @@ public class TextFileViewer extends JPanel {
 					
 					while (matcher.find()) {
 						try {
+							this.foundLocations.add(new FoundLocation(matcher.start(), matcher.end()));
+							
 							textArea.getHighlighter().addHighlight(
-								matcher.start(), matcher.end(), highlightPatiner
+								matcher.start(), matcher.end(), highlightPainter
 							);
 						} catch (BadLocationException e1) {
 							e1.printStackTrace();
@@ -216,8 +350,10 @@ public class TextFileViewer extends JPanel {
 				int index = 0;
 				while ((index = text.indexOf(textToFind, index)) != -1) {
 					try {
+						this.foundLocations.add(new FoundLocation(index, index + textToFindLength));
+						
 						textArea.getHighlighter().addHighlight(
-							index, index + textToFindLength, highlightPatiner
+							index, index + textToFindLength, highlightPainter
 						);
 						index += textToFindLength + 1;
 					} catch (BadLocationException e1) {
@@ -226,6 +362,9 @@ public class TextFileViewer extends JPanel {
 				}
 			}
 		}
+		
+		this.btnPrevious.setEnabled(false);
+		this.btnNext.setEnabled(!this.foundLocations.isEmpty());
 	}
 
 	private void changeFont() {
@@ -238,6 +377,8 @@ public class TextFileViewer extends JPanel {
 	private void clearSearch() {
 		txtSearch.setText("");
 		textArea.getHighlighter().removeAllHighlights();
+		this.btnNext.setEnabled(false);
+		this.btnPrevious.setEnabled(false);
 	}
 
 	private final static InitialRead loadFile(File file) {
@@ -374,6 +515,8 @@ public class TextFileViewer extends JPanel {
 			textArea.setCaretPosition(0);
 			
 			this.lblCurrentPosition.setText("Current position: " + currentLocationText + "%-" + currentEndLocationText + "%");
+			
+			updateSearch();
 		}
 	}
 	

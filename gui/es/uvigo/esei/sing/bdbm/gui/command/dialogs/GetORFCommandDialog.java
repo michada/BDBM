@@ -1,7 +1,6 @@
 package es.uvigo.esei.sing.bdbm.gui.command.dialogs;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -32,7 +31,7 @@ public class GetORFCommandDialog extends CommandDialog {
 	) {
 		super(controller, command, defaultParameters);
 		
-		this.setPreferredSize(new Dimension(400, 285));
+		this.pack();
 	}
 
 	@Override

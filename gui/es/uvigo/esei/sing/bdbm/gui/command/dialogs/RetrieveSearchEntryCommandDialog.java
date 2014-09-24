@@ -1,7 +1,6 @@
 package es.uvigo.esei.sing.bdbm.gui.command.dialogs;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
@@ -49,7 +48,7 @@ public class RetrieveSearchEntryCommandDialog extends CommandDialog {
 		
 		this.accessionInfer = accessionInfer;
 		
-		this.setPreferredSize(new Dimension(400, 225));
+		this.pack();
 	}
 
 	private Database getSelectedDatabase() {

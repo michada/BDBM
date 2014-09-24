@@ -17,7 +17,7 @@ public class DefaultFastaParser implements FastaParser {
 	}
 	
 	@Override
-	public void parse(File file) throws IOException {
+	public void parse(File file) throws FastaParseException, IOException {
 		try (final BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String line;
 			
@@ -76,45 +76,51 @@ public class DefaultFastaParser implements FastaParser {
 	}
 	
 	protected void throwInvalidFormatException(File file, long lineCount, String formatError) 
-	throws IOException {
-		throw new IOException(
+	throws FastaParseException {
+		throw new FastaParseException(
 			String.format("File '%s' has an invalid fasta format. Line %d is invalid: %s.", 
 				file.getAbsolutePath(), lineCount, formatError
 			)
 		);
 	}
 	
-	protected void notifySequenceNameRead(File file, String sequenceName) {
+	protected void notifySequenceNameRead(File file, String sequenceName) 
+	throws FastaParseException {
 		for (FastaParserListener listener : this.listeners) {
 			listener.sequenceNameRead(file, sequenceName);
 		}
 	}
 	
-	protected void notifySequenceFragmentRead(File file, String sequence) {
+	protected void notifySequenceFragmentRead(File file, String sequence) 
+	throws FastaParseException {
 		for (FastaParserListener listener : this.listeners) {
 			listener.sequenceFragmentRead(file, sequence);
 		}
 	}
 	
-	protected void notifyParseStart(File file) {
+	protected void notifyParseStart(File file) 
+	throws FastaParseException {
 		for (FastaParserListener listener : this.listeners) {
 			listener.parseStart(file);
 		}
 	}
 	
-	protected void notifyParseEnd(File file) {
+	protected void notifyParseEnd(File file) 
+	throws FastaParseException {
 		for (FastaParserListener listener : this.listeners) {
 			listener.parseEnd(file);
 		}
 	}
 	
-	protected void notifySequenceStart(File file) {
+	protected void notifySequenceStart(File file) 
+	throws FastaParseException {
 		for (FastaParserListener listener : this.listeners) {
 			listener.sequenceStart(file);
 		}
 	}
 	
-	protected void notifySequenceEnd(File file) {
+	protected void notifySequenceEnd(File file) 
+	throws FastaParseException {
 		for (FastaParserListener listener : this.listeners) {
 			listener.sequenceEnd(file);
 		}

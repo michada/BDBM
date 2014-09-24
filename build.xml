@@ -1,6 +1,6 @@
 <project name="BDBM - BLAST DataBase Manager">
 	<property name="project-name" value="BDBM"/>
-	<property name="version" value="0.8.4"/>
+	<property name="version" value="0.9.0"/>
 	<property name="dir-dists" location="dists"/>
 	<property name="dir-jars" location="${dir-dists}${file.separator}jars"/>
 	<property name="dir-gui" location="${dir-dists}${file.separator}gui"/>
@@ -25,13 +25,14 @@
 			<fileset dir="${basedir}${file.separator}lib">
 				<include name="commons-compiler.jar"/>
 				<include name="commons-io-2.4.jar"/>
+				<include name="commons-lang3-3.3.2.jar"/>
 				<include name="janino.jar"/>
 				<include name="jfontchooser-1.0.5.jar"/>
 				<include name="logback-classic-1.0.9.jar"/>
 				<include name="logback-core-1.0.9.jar"/>
 				<include name="slf4j-api-1.7.2.jar"/>
 			</fileset>
-			<fileset file="..${file.separator}yaCLI${file.separator}dists${file.separator}yaCLI.jar"/>
+			<fileset file="..${file.separator}yacli${file.separator}target${file.separator}yacli-0.0.2-SNAPSHOT.jar"/>
 		</copy>
 		<!--copy todir="${dist-gui-dir}">
 			<fileset file="bdbm.conf"/>
@@ -44,26 +45,26 @@
 			<fileset dir="cli_bin"/>
 			
 			<manifest>
-				<attribute name="Class-Path" value="lib/commons-compiler.jar lib/commons-io-2.4.jar lib/janino.jar lib/jfontchooser-1.0.5.jar lib/logback-classic-1.0.9.jar lib/logback-core-1.0.9.jar lib/slf4j-api-1.7.2.jar lib/yaCLI.jar"/>
+				<attribute name="Class-Path" value="lib/commons-compiler.jar lib/commons-io-2.4.jar lib/commons-lang3-3.3.2.jar lib/janino.jar lib/jfontchooser-1.0.5.jar lib/logback-classic-1.0.9.jar lib/logback-core-1.0.9.jar lib/slf4j-api-1.7.2.jar lib/yacli-0.0.2-SNAPSHOT.jar"/>
 				<attribute name="Main-Class" value="es.uvigo.esei.sing.bdbm.gui.GUI"/>
 			</manifest>
 		</jar>
 		
+		<echo file="${dist-gui-dir}${file.separator}run-validate.sh">#!/bin/bash
+java -jar ${dist-jar-name}
+</echo>
+		
+		<!--echo file="${dist-gui-dir}${file.separator}run.bat">@echo off
+java -jar ${dist-jar-name}
+</echo-->
+		
 		<echo file="${dist-gui-dir}${file.separator}run.sh">#!/bin/bash
-java -jar ${dist-jar-name}
-		</echo>
-		
-		<echo file="${dist-gui-dir}${file.separator}run.bat">@echo off
-java -jar ${dist-jar-name}
-		</echo>
-		
-		<echo file="${dist-gui-dir}${file.separator}run-no-validate.sh">#!/bin/bash
 java -Dentities.fasta.validate=false -jar ${dist-jar-name}
-		</echo>
+</echo>
 		
-		<echo file="${dist-gui-dir}${file.separator}run-no-validate.bat">@echo off
+		<!--echo file="${dist-gui-dir}${file.separator}run-no-validate.bat">@echo off
 java -Dentities.fasta.validate=false -jar ${dist-jar-name}
-		</echo>
+</echo-->
 		
 		<echo file="${dist-gui-dir}${file.separator}bdbm.conf"># Absolute path to the folder to be used as repository
 repository.baseDir=
@@ -86,7 +87,7 @@ ncbi.binDir=
 retrievesearchentry.accession.infer=false
 </echo>
 		
+		<chmod perm="+x" file="${dist-gui-dir}${file.separator}run-validate.sh"/>
 		<chmod perm="+x" file="${dist-gui-dir}${file.separator}run.sh"/>
-		<chmod perm="+x" file="${dist-gui-dir}${file.separator}run-no-validate.sh"/>
 	</target>
 </project>

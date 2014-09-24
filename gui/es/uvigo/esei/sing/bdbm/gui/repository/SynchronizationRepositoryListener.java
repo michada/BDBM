@@ -1,4 +1,4 @@
-package es.uvigo.esei.sing.bdbm.gui;
+package es.uvigo.esei.sing.bdbm.gui.repository;
 
 import java.io.File;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package es.uvigo.esei.sing.bdbm.gui;
+package es.uvigo.esei.sing.bdbm.gui.repository;
 
 import java.awt.Component;
 
@@ -7,13 +7,13 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeNode;
+import es.uvigo.esei.sing.bdbm.gui.repository.RepositoryTreeModel.TextFileMutableTreeNode;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Fasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry;
 
-class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
+public class RepositoryTreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 1L;
 	
 	final static ImageIcon ICON_FASTA = 

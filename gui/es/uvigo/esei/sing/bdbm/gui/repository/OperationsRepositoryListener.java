@@ -1,4 +1,4 @@
-package es.uvigo.esei.sing.bdbm.gui;
+package es.uvigo.esei.sing.bdbm.gui.repository;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -42,7 +42,7 @@ import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
-import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeNode;
+import es.uvigo.esei.sing.bdbm.gui.BDBMGUIController;
 import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
@@ -50,6 +50,7 @@ import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ReformatFastaCommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
+import es.uvigo.esei.sing.bdbm.gui.repository.RepositoryTreeModel.TextFileMutableTreeNode;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Database;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export;
 import es.uvigo.esei.sing.bdbm.persistence.entities.Export.ExportEntry;

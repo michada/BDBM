@@ -1,5 +1,7 @@
 package es.uvigo.esei.sing.bdbm.gui.command.dialogs;
 
+import java.util.List;
+
 import es.uvigo.ei.sing.yacli.Option;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 
@@ -21,7 +23,27 @@ public class ParameterValuesReceiverWrapper extends AbstractParameterValuesRecei
 	}
 	
 	@Override
+	public List<String> getValues(Option<?> option) {
+		return super.getValues(option);
+	}
+	
+	@Override
 	public void setValue(Option<?> option, String value) {
 		this.receiver.setValue(option, value);
+	}
+	
+	@Override
+	public void setValue(Option<?> option, List<String> value) {
+		super.setValue(option, value);
+	}
+	
+	@Override
+	public boolean removeValue(Option<?> option) {
+		return super.removeValue(option);
+	}
+	
+	@Override
+	public boolean hasOption(Option<?> option) {
+		return super.hasOption(option);
 	}
 }

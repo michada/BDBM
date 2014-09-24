@@ -3,8 +3,6 @@ package es.uvigo.esei.sing.bdbm.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dialog.ModalityType;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -13,11 +11,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -36,36 +31,11 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.spi.AppenderAttachable;
 import es.uvigo.esei.sing.bdbm.LogConfiguration;
-import es.uvigo.esei.sing.bdbm.cli.commands.BLASTDBAliasToolCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.BLASTNCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.BLASTPCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ImportFastaCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.ReformatFastaCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.RetrieveSearchEntryCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.SplignCompartCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTNCommand;
-import es.uvigo.esei.sing.bdbm.cli.commands.TBLASTXCommand;
-import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
-import es.uvigo.esei.sing.bdbm.gui.RepositoryTreeModel.TextFileMutableTreeNode;
-import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTNCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTPCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalBLASTNCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalBLASTPCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTNCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ExternalTBLASTXCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.GetORFCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.MakeBLASTDBCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.ReformatFastaCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.RetrieveSearchEntryCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.SplignCompartCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTNCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.command.dialogs.TBLASTXCommandDialog;
-import es.uvigo.esei.sing.bdbm.gui.configuration.ConfigurationDialog;
+import es.uvigo.esei.sing.bdbm.gui.repository.OperationsRepositoryListener;
+import es.uvigo.esei.sing.bdbm.gui.repository.RepositoryTreeModel;
+import es.uvigo.esei.sing.bdbm.gui.repository.RepositoryTreeRenderer;
+import es.uvigo.esei.sing.bdbm.gui.repository.RepositoryTreeModel.TextFileMutableTreeNode;
 import es.uvigo.esei.sing.bdbm.gui.tabpanel.CloseableJTabbedPane;
 import es.uvigo.esei.sing.bdbm.gui.tabpanel.TabCloseAdapter;
 import es.uvigo.esei.sing.bdbm.gui.tabpanel.TabCloseEvent;
@@ -77,8 +47,6 @@ public class BDBMMainPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final BDBMGUIController controller;
-	
 	private final JTree treeNucleotide;
 	private final JTree treeProtein;
 
@@ -87,8 +55,6 @@ public class BDBMMainPanel extends JPanel {
 	
 	public BDBMMainPanel(BDBMGUIController controller) {
 		super(new BorderLayout());
-		
-		this.controller = controller;
 		
 		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splitPane.setOneTouchExpandable(true);
@@ -110,8 +76,8 @@ public class BDBMMainPanel extends JPanel {
 			BDBMMainPanel.TAB_LABEL_PROTEIN
 		);
 		
-		this.treeNucleotide.addMouseListener(new OperationsRepositoryListener(this.controller));
-		this.treeProtein.addMouseListener(new OperationsRepositoryListener(this.controller));
+		this.treeNucleotide.addMouseListener(new OperationsRepositoryListener(controller));
+		this.treeProtein.addMouseListener(new OperationsRepositoryListener(controller));
 		
 		this.treeNucleotide.setDoubleBuffered(true);
 		this.treeProtein.setDoubleBuffered(true);
@@ -170,136 +136,6 @@ public class BDBMMainPanel extends JPanel {
 		splitPane.setRightComponent(componentMain);
 		
 		this.add(splitPane, BorderLayout.CENTER);
-	}
-	
-	public final JMenuBar createMenuBar() {
-		final JMenuBar menuBar = new JMenuBar();
-		
-		final JMenu menuFile = new JMenu("File");
-		menuFile.add(new AbstractAction("Configuration") {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				new ConfigurationDialog(
-					BDBMMainPanel.this.controller,
-					SwingUtilities.getWindowAncestor(BDBMMainPanel.this),
-					"Configuration",
-					ModalityType.APPLICATION_MODAL
-				).setVisible(true);
-			}
-		});
-		menuFile.addSeparator();
-		menuFile.add(new AbstractAction("Exit") {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-			}
-		});
-		
-		final JMenu menuOperations = new JMenu("Operations");
-		final BDBMController bdbmController = this.controller.getController();
-		menuOperations.add(new BDBMCommandAction(
-			bdbmController, 
-			new ImportFastaCommand(bdbmController)
-		));
-		menuOperations.add(new BDBMCommandAction(
-			bdbmController,
-			new MakeBLASTDBCommand(bdbmController), 
-			MakeBLASTDBCommandDialog.class
-		));
-		menuOperations.add(new BDBMCommandAction(
-			bdbmController,
-			new BLASTDBAliasToolCommand(bdbmController), 
-			BLASTDBAliasToolCommandDialog.class
-		));
-		final BDBMCommandAction retrieveSearchEntryCA = new BDBMCommandAction(
-			bdbmController,
-			new RetrieveSearchEntryCommand(bdbmController), 
-			RetrieveSearchEntryCommandDialog.class			
-		);
-
-		retrieveSearchEntryCA.addParamValue(boolean.class, this.controller.getEnvironment().isAccessionInferEnabled());
-		
-		menuOperations.add(retrieveSearchEntryCA);
-		
-		menuOperations.add(new BDBMCommandAction(
-			bdbmController, 
-			new ReformatFastaCommand(bdbmController), 
-			ReformatFastaCommandDialog.class)
-		);
-		
-		// ORF Operations
-		menuOperations.addSeparator();
-		menuOperations.add(new BDBMCommandAction(
-			bdbmController,
-			new GetORFCommand(bdbmController),
-			GetORFCommandDialog.class
-		));
-		
-		// NCBI Operations
-		menuOperations.addSeparator();
-		menuOperations.add(new BDBMCommandAction(
-			bdbmController,
-			new SplignCompartCommand(bdbmController),
-			SplignCompartCommandDialog.class
-		));
-		
-		final JMenu menuBlast = new JMenu("BLAST");
-		menuBlast.add(new BDBMCommandAction(
-			bdbmController,
-			new BLASTNCommand(bdbmController),
-			BLASTNCommandDialog.class
-		));
-		menuBlast.add(new BDBMCommandAction(
-			bdbmController,
-			new BLASTPCommand(bdbmController),
-			BLASTPCommandDialog.class
-		));
-		menuBlast.add(new BDBMCommandAction(
-			bdbmController,
-			new TBLASTNCommand(bdbmController),
-			TBLASTNCommandDialog.class
-		));
-		menuBlast.add(new BDBMCommandAction(
-			bdbmController,
-			new TBLASTXCommand(bdbmController),
-			TBLASTXCommandDialog.class
-		));
-		
-		menuBlast.addSeparator();
-		menuBlast.add(new BDBMCommandAction(
-			"BLASTN with external query",
-			bdbmController,
-			new BLASTNCommand(bdbmController),
-			ExternalBLASTNCommandDialog.class
-		));
-		menuBlast.add(new BDBMCommandAction(
-			"BLASTP with external query",
-			bdbmController,
-			new BLASTPCommand(bdbmController),
-			ExternalBLASTPCommandDialog.class
-		));
-		menuBlast.add(new BDBMCommandAction(
-			"TBLASTN with external query",
-			bdbmController,
-			new TBLASTNCommand(bdbmController),
-			ExternalTBLASTNCommandDialog.class
-		));
-		menuBlast.add(new BDBMCommandAction(
-			"TBLASTX with external query",
-			bdbmController,
-			new TBLASTXCommand(bdbmController),
-			ExternalTBLASTXCommandDialog.class
-		));
-		
-		menuBar.add(menuFile);
-		menuBar.add(menuOperations);
-		menuBar.add(menuBlast);
-		
-		return menuBar;
 	}
 	
 	private JTree createRepositoryTree(

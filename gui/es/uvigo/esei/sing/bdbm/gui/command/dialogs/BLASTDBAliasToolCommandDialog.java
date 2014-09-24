@@ -48,6 +48,8 @@ public class BLASTDBAliasToolCommandDialog extends CommandDialog {
 		Parameters defaultParameters
 	) {
 		super(controller, command, defaultParameters);
+		
+		this.pack();
 	}
 	
 	@Override

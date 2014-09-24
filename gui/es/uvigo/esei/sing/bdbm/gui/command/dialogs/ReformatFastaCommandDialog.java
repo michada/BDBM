@@ -1,12 +1,15 @@
 package es.uvigo.esei.sing.bdbm.gui.command.dialogs;
 
 import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import es.uvigo.ei.sing.yacli.Option;
 import es.uvigo.ei.sing.yacli.Parameters;
@@ -14,6 +17,7 @@ import es.uvigo.ei.sing.yacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.cli.commands.ReformatFastaCommand;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
+import es.uvigo.esei.sing.bdbm.fasta.FastaUtils.RenameMode;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 import es.uvigo.esei.sing.bdbm.gui.command.input.BuildComponent;
@@ -24,6 +28,8 @@ public class ReformatFastaCommandDialog extends CommandDialog {
 
 	private JComboBox<Fasta> cmbFastas;
 	private ActionListener alFastas;
+	
+	private Component cmpPrefix, cmpIndexes;
 	
 	public ReformatFastaCommandDialog(
 		BDBMController controller, 
@@ -38,8 +44,8 @@ public class ReformatFastaCommandDialog extends CommandDialog {
 		Parameters defaultParameters
 	) {
 		super(controller, command, defaultParameters);
-		
-		this.setPreferredSize(new Dimension(480, 240));
+
+		this.pack();
 	}
 
 	@Override
@@ -115,6 +121,57 @@ public class ReformatFastaCommandDialog extends CommandDialog {
 			this.cmbFastas.addActionListener(alFastas);
 			
 			return cmbFastas;
+		} else if (option.equals(ReformatFastaCommand.OPTION_FRAGMENT_LENGTH)) {
+			final JCheckBox chkChangeLength = new JCheckBox("Change sequence length?", false);
+			final JTextField component = (JTextField) BuildComponent.forOption(this, option, receiver);
+			component.setEnabled(false);
+			component.setText("");
+			
+			chkChangeLength.addActionListener(new ActionListener() {
+				private String lastValue = "0";
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (chkChangeLength.isSelected()) {
+						component.setText(this.lastValue);
+						component.setEnabled(true);
+					} else {
+						component.setEnabled(false);
+						lastValue = receiver.getValue(option);
+						component.setText("");
+					}
+				}
+			});
+			
+			final JPanel panel = new JPanel(new GridLayout(2, 1));
+			panel.add(chkChangeLength);
+			panel.add(component);
+			
+			return panel;
+		} else if (option.equals(ReformatFastaCommand.OPTION_RENAMING_MODE)) {
+			final JComboBox<T> cmbMode = BuildComponent.forEnum(this, option, receiver);
+			
+			cmbMode.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (cmpPrefix != null)
+						cmpPrefix.setVisible(cmbMode.getSelectedItem() == RenameMode.PREFIX);
+					if (cmpIndexes != null)
+						cmpIndexes.setVisible(cmbMode.getSelectedItem() == RenameMode.GENERIC);
+					
+					ReformatFastaCommandDialog.this.pack();
+				}
+			});
+			
+			return cmbMode;
+		} else if (option.equals(ReformatFastaCommand.OPTION_PREFIX)) {
+			this.cmpPrefix = super.createComponentForOption(option, receiver);
+			this.cmpPrefix.setVisible(false);
+			return this.cmpPrefix;
+		} else if (option.equals(ReformatFastaCommand.OPTION_INDEXES)) {
+			this.cmpIndexes = super.createComponentForOption(option, receiver);
+			this.cmpIndexes.setVisible(false);
+			return this.cmpIndexes;
 		} else {
 			return super.createComponentForOption(option, receiver);
 		}

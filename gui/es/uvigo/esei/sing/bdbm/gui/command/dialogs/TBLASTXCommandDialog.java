@@ -1,7 +1,6 @@
 package es.uvigo.esei.sing.bdbm.gui.command.dialogs;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,7 +38,7 @@ public class TBLASTXCommandDialog extends CommandDialog {
 	) {
 		super(controller, command, defaultParameters);
 		
-		this.setPreferredSize(new Dimension(440, 340));
+		this.pack();
 	}
 
 	@Override

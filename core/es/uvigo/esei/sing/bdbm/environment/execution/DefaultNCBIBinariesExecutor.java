@@ -24,6 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import es.uvigo.esei.sing.bdbm.environment.binaries.NCBIBinaries;
+import es.uvigo.esei.sing.bdbm.fasta.DefaultFastaParser;
+import es.uvigo.esei.sing.bdbm.fasta.FastaParseException;
+import es.uvigo.esei.sing.bdbm.fasta.FastaParser;
+import es.uvigo.esei.sing.bdbm.fasta.FastaParserAdapter;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
 
@@ -66,7 +70,7 @@ implements NCBIBinariesExecutor {
 		NucleotideFasta cdsFasta,
 		NucleotideDatabase cdsDB,
 		NucleotideFasta fasta
-	) throws InterruptedException, ExecutionException, IOException {
+	) throws InterruptedException, ExecutionException, IOException, FastaParseException {
 		try (final DirectoryManager dirManager = new DirectoryManager(
 			genomeFasta, genomeDB, cdsFasta, cdsDB
 		)) {
@@ -130,13 +134,71 @@ implements NCBIBinariesExecutor {
 			
 			mergeSequences(fasta);
 			
+			deleteNonATGSequences(fasta);
+			
 			return new DefaultExecutionResult(0);
 		}
 	}
 	
+	private static void deleteNonATGSequences(NucleotideFasta fasta) throws IOException, FastaParseException {
+		final Path filteredFile = Files.createTempFile("bdbm-filtered", "fasta");
+		
+		try (PrintWriter pw = new PrintWriter(filteredFile.toFile())) {
+			final FastaParser parser = new DefaultFastaParser();
+			parser.addParseListener(new FastaParserAdapter() {
+				String name, previousName;
+				StringBuilder sequence, previousSequence;
+				
+				@Override
+				public void sequenceNameRead(File file, String sequenceName) {
+					this.name = sequenceName;
+					this.sequence = new StringBuilder();
+				}
+				
+				@Override
+				public void sequenceFragmentRead(File file, String sequenceFragment) {
+					if (this.sequence.length() > 0)
+						this.sequence.append("\n");
+					this.sequence.append(sequenceFragment);
+				}
+				
+				@Override
+				public void sequenceEnd(File file) {
+					if (this.sequence.length() >= 3 && this.sequence.substring(0, 3).equalsIgnoreCase("ATG")) {
+						if (this.previousName != null && this.previousSequence != null) {
+							pw.println(this.previousName);
+							pw.println(this.previousSequence);
+						}
+						
+						this.previousName = this.name;
+						this.previousSequence = this.sequence;
+					} else {
+						this.previousName = null;
+						this.previousSequence = null;
+					}
+					
+					this.name = null;
+					this.sequence = null;
+				}
+				
+				@Override
+				public void parseEnd(File file) {
+					if (this.previousName != null && this.previousSequence != null) {
+						pw.println(this.previousSequence);
+						pw.println(this.previousName);
+					}
+				}
+			});
+			
+			parser.parse(fasta.getFile());
+		}
+		
+		Files.move(filteredFile, fasta.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+	}
+
 	private static void mergeSequences(NucleotideFasta fasta)
 	throws IOException, FileNotFoundException {
-		final File tempFasta = File.createTempFile("bdbm", "fasta");
+		final File tempFasta = File.createTempFile("bdbm", ".fasta");
 		tempFasta.deleteOnExit();
 		
 		final Map<String, AtomicInteger> count = new HashMap<>();
@@ -206,7 +268,7 @@ implements NCBIBinariesExecutor {
 				}
 			} while (!end);
 		}
-		
+
 		Files.move(tempFasta.toPath(), fasta.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
 	}
 	

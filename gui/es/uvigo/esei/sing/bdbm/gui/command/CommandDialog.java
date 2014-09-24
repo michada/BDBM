@@ -8,6 +8,8 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -35,6 +37,8 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import es.uvigo.ei.sing.yacli.Command;
 import es.uvigo.ei.sing.yacli.DefaultValuedOption;
@@ -145,10 +149,15 @@ public class CommandDialog extends JDialog {
 			final JLabel lblName = new JLabel(option.getParamName());
 			lblName.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
 			final JLabel lblDescription = new JLabel(CommandDialog.ICON_HELP);
-			lblDescription.setToolTipText(option.getDescription());
+			
+			final String description = StringEscapeUtils.escapeHtml4(option.getDescription())
+				.replaceAll("\n", "<br/>")
+				.replaceAll("\t", "&nbsp;&nbsp;&nbsp;");
+			
+			lblDescription.setToolTipText("<html>" + description + "</html>");
 			
 			final Component inputComponent = this.createComponentForOption(option, parameterValues);
-			verticalGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+			verticalGroup.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER, false)
 				.addComponent(lblName, Alignment.LEADING)
 				.addComponent(inputComponent)
 				.addComponent(lblDescription)
@@ -157,8 +166,23 @@ public class CommandDialog extends JDialog {
 			pgLblName.addComponent(lblName);
 			pgText.addComponent(inputComponent);
 			pgLblDescription.addComponent(lblDescription);
+			
+			inputComponent.addComponentListener(new ComponentAdapter() {
+				@Override
+				public void componentShown(ComponentEvent e) {
+					lblName.setVisible(true);
+					lblDescription.setVisible(true);
+				}
+				
+				@Override
+				public void componentHidden(ComponentEvent e) {
+					lblName.setVisible(false);
+					lblDescription.setVisible(false);
+				}
+			});
+			lblName.setVisible(inputComponent.isVisible());
+			lblDescription.setVisible(inputComponent.isVisible());
 		}
-		
 		
 		panel.add(taDescription, BorderLayout.NORTH);
 		panel.add(panelOptions, BorderLayout.CENTER);
@@ -199,11 +223,13 @@ public class CommandDialog extends JDialog {
 	private static class MICBParameterValuesReceiver 
 	extends Observable
 	implements ParameterValuesReceiver {
+		private Option<?> option = null;
 		private String lastValue = null;
 		
 		@Override
 		public boolean hasOption(Option<?> option) {
-			throw new UnsupportedOperationException();
+			return this.option != null && this.option.equals(option);
+//			throw new UnsupportedOperationException();
 		}
 		
 		@Override
@@ -223,7 +249,13 @@ public class CommandDialog extends JDialog {
 		
 		@Override
 		public boolean removeValue(Option<?> option) {
-			throw new UnsupportedOperationException();
+			if (this.option != null && this.option.equals(option)) {
+				this.option = null;
+				this.lastValue = null;
+				return true;
+			} else {
+				return false;
+			}
 		}
 		
 		public boolean hasValue() {
@@ -237,6 +269,7 @@ public class CommandDialog extends JDialog {
 		@Override
 		public void setValue(Option<?> option, String value) {
 			this.lastValue = value;
+			this.option = option;
 			this.setChanged();
 			this.notifyObservers();
 		}

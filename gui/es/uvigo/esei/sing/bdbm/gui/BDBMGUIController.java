@@ -39,7 +39,6 @@ public class BDBMGUIController extends Observable {
 			configuration.getBaseEMBOSS(),
 			configuration.getBaseNCBI()
 		)) {
-			
 			this.setChanged();
 			this.notifyObservers(configuration);
 			
