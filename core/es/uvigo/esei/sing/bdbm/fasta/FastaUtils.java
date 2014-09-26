@@ -114,7 +114,7 @@ public class FastaUtils {
 				
 				@Override
 				public void sequenceNameRead(File file, String sequenceName) {
-					writer.println(">" + prefix + prefixCounter);
+					writer.println(">" + prefix + prefixCounter++ + "_" + sequenceName);
 				}
 				
 				@Override
@@ -128,7 +128,7 @@ public class FastaUtils {
 				
 				@Override
 				public void sequenceNameRead(File file, String sequenceName) {
-					writer.println(">" + prefix + prefixCounter);
+					writer.println(">" + prefix + prefixCounter++ + "_" + sequenceName);
 				}
 				
 				@Override
