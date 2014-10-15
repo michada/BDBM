@@ -9,6 +9,8 @@ implements StandardNameSummarizer {
 	protected final static String PART_PATTERN = "\\|[\\p{Graph}]+";
 	protected final static String OPTIONAL_PART_PATTERN = "\\|[\\p{Graph}]*";
 	
+	protected String separator = "_";
+	
 	protected abstract int getNumOfParts();
 	protected abstract int[] getSelectedIndexes();
 	
@@ -19,7 +21,17 @@ implements StandardNameSummarizer {
 	protected Set<Integer> getOptionalIndexes() {
 		return Collections.emptySet();
 	}
-
+	
+	@Override
+	public String getSeparator() {
+		return separator;
+	}
+	
+	@Override
+	public void setSeparator(String separator) {
+		this.separator = separator;
+	}
+	
 	protected String getPattern() {
 		final StringBuilder pattern = new StringBuilder("^>" + this.getPrefix());
 		final Set<Integer> optionalIndexes = this.getOptionalIndexes();
@@ -57,7 +69,7 @@ implements StandardNameSummarizer {
 					final String part = parts[partIndex + 1].trim();
 					
 					if (!part.isEmpty()) {
-						if (sbName.length() > 1) sbName.append('_');
+						if (sbName.length() > 1) sbName.append(this.getSeparator());
 						sbName.append(part);
 					}
 				}

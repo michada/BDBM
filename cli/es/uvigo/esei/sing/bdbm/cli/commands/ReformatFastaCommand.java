@@ -1,12 +1,16 @@
 package es.uvigo.esei.sing.bdbm.cli.commands;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import es.uvigo.ei.sing.yacli.DefaultValuedStringOption;
 import es.uvigo.ei.sing.yacli.Option;
 import es.uvigo.ei.sing.yacli.Parameters;
 import es.uvigo.ei.sing.yacli.StringConstructedOption;
 import es.uvigo.ei.sing.yacli.StringOption;
+import es.uvigo.esei.sing.bdbm.cli.commands.converters.DefaultValueBooleanOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.EnumOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.IntegerOption;
@@ -65,6 +69,30 @@ public class ReformatFastaCommand extends BDBMCommand {
 			true, true
 		);
 	
+	public static final DefaultValueBooleanOption OPTION_KEEP_NAMES_WHEN_PREFIX =
+		new DefaultValueBooleanOption(
+			"Keep Names", 
+			"keep_names", 
+			"Keep names when using the \"Prefix\" renaming method", 
+			true
+		);
+	
+	public static final DefaultValueBooleanOption OPTION_ADD_INDEX_WHEN_PREFIX =
+		new DefaultValueBooleanOption(
+			"Add Index", 
+			"add_index", 
+			"Add index after the prefix when using the \"Prefix\" renaming method", 
+			true
+		);
+	
+	public static final DefaultValuedStringOption OPTION_SEPARATOR =
+		new DefaultValuedStringOption(
+			"Separator", 
+			"separator", 
+			"Separator of the parts of new names", 
+			"_"
+		);
+	
 	public ReformatFastaCommand(BDBMController controller) {
 		super(controller);
 	}
@@ -91,25 +119,44 @@ public class ReformatFastaCommand extends BDBMCommand {
 		final File fastaFile = parameters.getSingleValue(OPTION_FASTA);
 		final FastaUtils.RenameMode renameMode = parameters.getSingleValue(OPTION_RENAMING_MODE);
 		final Integer fragmentLength = parameters.getSingleValue(OPTION_FRAGMENT_LENGTH);
-		final List<Integer> indexes = parameters.getAllValues(OPTION_INDEXES);
-		final String prefix = parameters.getSingleValue(OPTION_PREFIX);
 
-		final Object additionalParameters;
+		final Map<String, Object> additionalParameters = new HashMap<>();
 		switch (renameMode) {
-		case PREFIX:
-			additionalParameters = prefix;
-			break;
-		case GENERIC:
-			final int[] indexesArray = new int[indexes.size()];
-			int i = 0;
-			for (Integer index : indexes) {
-				indexesArray[i++] = index;
+			case SMART: {
+				final String separator = parameters.getSingleValue(OPTION_SEPARATOR);
+				additionalParameters.put(OPTION_SEPARATOR.getShortName(), separator == null? "" : separator);
+				break;
 			}
-			
-			additionalParameters = indexesArray;
-			break;
-		default:
-			additionalParameters = null;
+			case PREFIX: {
+				final String prefix = parameters.getSingleValue(OPTION_PREFIX);
+				final Boolean keepNameAfterPrefix = parameters.getSingleValue(OPTION_KEEP_NAMES_WHEN_PREFIX);
+				final Boolean addIndexAfterPrefix = parameters.getSingleValue(OPTION_ADD_INDEX_WHEN_PREFIX);
+				final String separator = parameters.getSingleValue(OPTION_SEPARATOR);
+				
+				additionalParameters.put(OPTION_PREFIX.getShortName(), prefix);
+				additionalParameters.put(OPTION_KEEP_NAMES_WHEN_PREFIX.getShortName(), keepNameAfterPrefix);
+				additionalParameters.put(OPTION_ADD_INDEX_WHEN_PREFIX.getShortName(), addIndexAfterPrefix);
+				additionalParameters.put(OPTION_SEPARATOR.getShortName(), separator == null? "" : separator);
+				break;
+			}
+			case GENERIC: {
+				final List<Integer> indexes = parameters.getAllValues(OPTION_INDEXES);
+				if (indexes == null || indexes.isEmpty())
+					throw new IllegalArgumentException("At least one index must be selected");
+				
+				final int[] indexesArray = new int[indexes.size()];
+				int i = 0;
+				for (Integer index : indexes) {
+					indexesArray[i++] = index;
+				}
+
+				additionalParameters.put(OPTION_INDEXES.getShortName(), indexesArray);
+				
+				final String separator = parameters.getSingleValue(OPTION_SEPARATOR);
+				additionalParameters.put(OPTION_SEPARATOR.getShortName(), separator == null? "" : separator);
+				break;
+			}
+			default:
 		}
 		
 		this.controller.reformatFasta(

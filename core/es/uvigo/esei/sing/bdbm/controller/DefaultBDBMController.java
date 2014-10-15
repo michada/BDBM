@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
@@ -650,8 +651,8 @@ public class DefaultBDBMController implements BDBMController {
 		}
 	}
 	
-	public void reformatFasta(RenameMode mode, Fasta fasta, int fragmentLength, Object additionalParameters) 
-	throws FastaParseException ,IOException {
+	public void reformatFasta(RenameMode mode, Fasta fasta, int fragmentLength, Map<String, Object> additionalParameters) 
+	throws FastaParseException, IOException {
 		final Path tmpPath = Files.createTempFile("bdbm", "rename.fasta");
 		
 		try (final PrintWriter writer = new PrintWriter(tmpPath.toFile())) {

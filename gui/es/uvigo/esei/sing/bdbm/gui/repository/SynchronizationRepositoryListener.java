@@ -85,10 +85,8 @@ class SynchronizationRepositoryListener<T, C extends SequenceEntity> implements 
 							(SortedMutableTreeNode<Export, ExportEntry>) entityNode;
 						
 						if (modifiedFile.exists()) {
-							System.out.println("ADD: " + modifiedFile);
 							addExportEntry(export, modifiedFile, exportNode);
 						} else {
-							System.out.println("DELETE: " + modifiedFile);
 							removeExportEntry(modifiedFile, exportNode);
 						}
 					} else if (entity.getBaseFile().equals(modifiedFile)) {

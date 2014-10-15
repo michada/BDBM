@@ -29,7 +29,7 @@ public class ReformatFastaCommandDialog extends CommandDialog {
 	private JComboBox<Fasta> cmbFastas;
 	private ActionListener alFastas;
 	
-	private Component cmpPrefix, cmpIndexes;
+	private Component cmpSeparator, cmpPrefix, cmpKeepNames, cmpAddIndex, cmpIndexes;
 	
 	public ReformatFastaCommandDialog(
 		BDBMController controller, 
@@ -156,6 +156,12 @@ public class ReformatFastaCommandDialog extends CommandDialog {
 				public void actionPerformed(ActionEvent e) {
 					if (cmpPrefix != null)
 						cmpPrefix.setVisible(cmbMode.getSelectedItem() == RenameMode.PREFIX);
+					if (cmpKeepNames != null)
+						cmpKeepNames.setVisible(cmbMode.getSelectedItem() == RenameMode.PREFIX);
+					if (cmpAddIndex != null)
+						cmpAddIndex.setVisible(cmbMode.getSelectedItem() == RenameMode.PREFIX);
+					if (cmpSeparator != null)
+						cmpSeparator.setVisible(cmbMode.getSelectedItem() != RenameMode.NONE);
 					if (cmpIndexes != null)
 						cmpIndexes.setVisible(cmbMode.getSelectedItem() == RenameMode.GENERIC);
 					
@@ -164,10 +170,22 @@ public class ReformatFastaCommandDialog extends CommandDialog {
 			});
 			
 			return cmbMode;
+		} else if (option.equals(ReformatFastaCommand.OPTION_SEPARATOR)) {
+			this.cmpSeparator = super.createComponentForOption(option, receiver);
+			this.cmpSeparator.setVisible(false);
+			return this.cmpSeparator;
 		} else if (option.equals(ReformatFastaCommand.OPTION_PREFIX)) {
 			this.cmpPrefix = super.createComponentForOption(option, receiver);
 			this.cmpPrefix.setVisible(false);
 			return this.cmpPrefix;
+		} else if (option.equals(ReformatFastaCommand.OPTION_KEEP_NAMES_WHEN_PREFIX)) {
+			this.cmpKeepNames = super.createComponentForOption(option, receiver);
+			this.cmpKeepNames.setVisible(false);
+			return this.cmpKeepNames;
+		} else if (option.equals(ReformatFastaCommand.OPTION_ADD_INDEX_WHEN_PREFIX)) {
+			this.cmpAddIndex = super.createComponentForOption(option, receiver);
+			this.cmpAddIndex.setVisible(false);
+			return this.cmpAddIndex;
 		} else if (option.equals(ReformatFastaCommand.OPTION_INDEXES)) {
 			this.cmpIndexes = super.createComponentForOption(option, receiver);
 			this.cmpIndexes.setVisible(false);

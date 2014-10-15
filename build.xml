@@ -1,6 +1,6 @@
 <project name="BDBM - BLAST DataBase Manager">
 	<property name="project-name" value="BDBM"/>
-	<property name="version" value="0.9.1"/>
+	<property name="version" value="0.9.2"/>
 	<property name="dir-dists" location="dists"/>
 	<property name="dir-jars" location="${dir-dists}${file.separator}jars"/>
 	<property name="dir-gui" location="${dir-dists}${file.separator}gui"/>

@@ -3,6 +3,7 @@ package es.uvigo.esei.sing.bdbm.controller;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Map;
 
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
@@ -157,7 +158,7 @@ public interface BDBMController {
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException;
 	
 	public void reformatFasta(
-		RenameMode mode, Fasta fasta, int fragmentLength, Object additionalParameters
+		RenameMode mode, Fasta fasta, int fragmentLength, Map<String, Object> additionalParameters
 	) throws FastaParseException, IOException;
 	
 	public abstract void mergeFastas(Fasta[] fastas, String outputFasta) throws FastaParseException, IOException;

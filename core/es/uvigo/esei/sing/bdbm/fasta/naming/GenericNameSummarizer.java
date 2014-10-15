@@ -8,12 +8,22 @@ implements NameSummarizer {
 
 	private int[] selectedIndexes;
 	
+	protected String separator = "_";
+	
 	public GenericNameSummarizer() {
 		this(0);
 	}
 	
 	public GenericNameSummarizer(int ... selectedIndexes) {
 		this.selectedIndexes = selectedIndexes;
+	}
+	
+	public String getSeparator() {
+		return separator;
+	}
+	
+	public void setSeparator(String separator) {
+		this.separator = separator;
 	}
 
 	public int[] getSelectedIndexes() {
@@ -40,10 +50,14 @@ implements NameSummarizer {
 			
 			final StringBuilder sbName = new StringBuilder(">");
 			for (int partIndex : getSelectedIndexes()) {
-				final String part = parts[partIndex + 1].trim();
+				if (partIndex <= 0 || partIndex >= parts.length)
+					throw new ArrayIndexOutOfBoundsException(
+						"Invalid index " + partIndex + ". Index must be in the range [1, " + (parts.length-1) + "]");
+				
+				final String part = parts[partIndex].trim();
 				
 				if (!part.isEmpty()) {
-					if (sbName.length() > 1) sbName.append('_');
+					if (sbName.length() > 1) sbName.append(this.separator);
 					sbName.append(part);
 				}
 			}
@@ -51,7 +65,7 @@ implements NameSummarizer {
 			if (sbName.length() > 1) return sbName.toString();
 			else throw new IllegalArgumentException("Invalid sequence name");
 		} else {
-			throw new IllegalArgumentException("Invalid sequence name");
+			throw new IllegalArgumentException("Invalid sequence name: " + name);
 		}
 	}
 }

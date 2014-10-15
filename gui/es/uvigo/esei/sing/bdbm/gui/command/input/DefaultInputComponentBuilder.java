@@ -74,7 +74,6 @@ public class DefaultInputComponentBuilder implements InputComponentBuilder {
 
 				public void updateReceiver() {
 					try {
-						System.out.println(txt.getText());
 						if (txt.getText().isEmpty()) {
 							receiver.removeValue(option);
 						} else {

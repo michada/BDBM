@@ -85,9 +85,9 @@ public class NameSummarizerFactory {
 		return summarizers;
 	}
 	
-	public static StandardNameSummarizer createStandardNameSummarizer(String prefix) {
+	public static StandardNameSummarizer createStandardNameSummarizer(String name) {
 		for (StandardNameSummarizer summarizer : listStandardNameSummarizers()) {
-			if (summarizer.getPrefix().equals(prefix)) 
+			if (summarizer.recognizes(name)) 
 				return summarizer;
 		}
 		

@@ -57,7 +57,6 @@ public abstract class AbstractDatabase extends AbstractSequenceEntity implements
 						if (index > 0) {
 							accessions.add(line.substring(0, index));
 						} else {
-							System.out.println("Not found: " + line);
 							accessions.add(line);
 						}
 					}
