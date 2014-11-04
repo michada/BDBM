@@ -357,30 +357,32 @@ implements NCBIBinariesExecutor {
 		
 		@Override
 		public void close() throws IOException {
-			if (this.compartmentsFile != null)
-				Files.deleteIfExists(this.compartmentsFile);
-			if (this.ldsdirFile != null)
-				Files.deleteIfExists(this.ldsdirFile);
-			if (this.bedFile != null)
-				Files.deleteIfExists(this.bedFile);
-			
-			Files.walkFileTree(this.workingDirectory, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file,	BasicFileAttributes attrs) 
-				throws IOException {
-					Files.delete(file);
-					
-					return FileVisitResult.CONTINUE;
-				}
+			if (Boolean.valueOf(System.getProperty("spligncompart.deletetmpfiles", "true"))) {
+				if (this.compartmentsFile != null)
+					Files.deleteIfExists(this.compartmentsFile);
+				if (this.ldsdirFile != null)
+					Files.deleteIfExists(this.ldsdirFile);
+				if (this.bedFile != null)
+					Files.deleteIfExists(this.bedFile);
 				
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-				throws IOException {
-					Files.delete(dir);
+				Files.walkFileTree(this.workingDirectory, new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult visitFile(Path file,	BasicFileAttributes attrs) 
+					throws IOException {
+						Files.delete(file);
+						
+						return FileVisitResult.CONTINUE;
+					}
 					
-					return FileVisitResult.CONTINUE;
-				}
-			});
+					@Override
+					public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+					throws IOException {
+						Files.delete(dir);
+						
+						return FileVisitResult.CONTINUE;
+					}
+				});
+			}
 		}
 	}
 
@@ -501,7 +503,7 @@ implements NCBIBinariesExecutor {
 		final List<String> targetExons = Arrays.asList(
 			"  <exon>TA", "  <exon>TG", "  <exon>GT",
 			"AG<exon>TA", "AG<exon>TG", "AG<exon>GT",
-			"<poly-A>"
+			"<poly-A>", "  <exon>  "
 		);
 		
 		return targetExons.contains(sequence);
