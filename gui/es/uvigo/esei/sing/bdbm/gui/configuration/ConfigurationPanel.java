@@ -1,6 +1,5 @@
 package es.uvigo.esei.sing.bdbm.gui.configuration;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -28,7 +27,9 @@ public class ConfigurationPanel extends JPanel {
 	private final JTextField txtRepository;
 	private final JTextField txtBLAST;
 	private final JTextField txtEMBOSS;
-	private final JTextField txtNCBI;
+	private final JTextField txtBedTools;
+	private final JTextField txtSplign;
+	private final JTextField txtCompart;
 	private final JButton btnBuildRepository;
 
 	public ConfigurationPanel(BDBMGUIController controller) {
@@ -36,7 +37,7 @@ public class ConfigurationPanel extends JPanel {
 		
 		this.controller = controller;
 		
-		this.setPreferredSize(new Dimension(600, 140));
+//		this.setPreferredSize(new Dimension(600, 140));
 		
 		final GroupLayout layout = new GroupLayout(this);
 		layout.setAutoCreateContainerGaps(true);
@@ -46,7 +47,9 @@ public class ConfigurationPanel extends JPanel {
 		final JLabel lblRepository = new JLabel("Repository Path");
 		final JLabel lblBLAST = new JLabel("BLAST Path");
 		final JLabel lblEMBOSS = new JLabel("EMBOSS Path");
-		final JLabel lblNCBI = new JLabel("NCBI Path");
+		final JLabel lblBedTools = new JLabel("BedTools Path");
+		final JLabel lblSplign = new JLabel("Splign Path");
+		final JLabel lblCompart = new JLabel("Compart Path");
 		
 		final File repositoryPath = this.controller.getEnvironment()
 			.getRepositoryPaths().getBaseDirectory();
@@ -54,27 +57,39 @@ public class ConfigurationPanel extends JPanel {
 			.getBLASTBinaries().getBaseDirectory();
 		final File embossBD = this.controller.getEnvironment()
 			.getEMBOSSBinaries().getBaseDirectory();
-		final File ncbiBD = this.controller.getEnvironment()
-			.getNCBIBinaries().getBaseDirectory();
+		final File bedToolsBD = this.controller.getEnvironment()
+			.getBedToolsBinaries().getBaseDirectory();
+		final File splignBD = this.controller.getEnvironment()
+			.getSplignBinaries().getBaseDirectory();
+		final File compartBD = this.controller.getEnvironment()
+			.getCompartBinaries().getBaseDirectory();
 		
 		this.txtRepository = new JTextField(repositoryPath.getAbsolutePath());
 		this.txtBLAST = new JTextField(blastBD == null ? "" : blastBD.getAbsolutePath());
 		this.txtEMBOSS = new JTextField(embossBD == null ? "" : embossBD.getAbsolutePath());
-		this.txtNCBI = new JTextField(ncbiBD == null ? "" : ncbiBD.getAbsolutePath());
+		this.txtBedTools = new JTextField(bedToolsBD == null ? "" : bedToolsBD.getAbsolutePath());
+		this.txtSplign = new JTextField(splignBD == null ? "" : splignBD.getAbsolutePath());
+		this.txtCompart = new JTextField(compartBD == null ? "" : compartBD.getAbsolutePath());
 		
 		this.txtRepository.setEditable(false);
 		this.txtBLAST.setEditable(false);
 		this.txtEMBOSS.setEditable(false);
-		this.txtNCBI.setEditable(false);
+		this.txtBedTools.setEditable(false);
+		this.txtSplign.setEditable(false);
+		this.txtCompart.setEditable(false);
 		
 		final JButton btnRepository = new JButton("Select...");
 		final JButton btnBLASTSelect = new JButton("Select...");
 		final JButton btnEMBOSSSelect = new JButton("Select...");
-		final JButton btnNCBISelect = new JButton("Select...");
+		final JButton btnBedToolsSelect = new JButton("Select...");
+		final JButton btnSplignSelect = new JButton("Select...");
+		final JButton btnCompartSelect = new JButton("Select...");
 		
 		final JButton btnBLASTInPath = new JButton("In system path");
 		final JButton btnEMBOSSInPath = new JButton("In system path");
-		final JButton btnNCBIInPath = new JButton("In system path");
+		final JButton btnBedToolsInPath = new JButton("In system path");
+		final JButton btnSplignInPath = new JButton("In system path");
+		final JButton btnCompartInPath = new JButton("In system path");
 		
 		this.btnBuildRepository = new JButton(new AbstractAction("Build") {
 			private static final long serialVersionUID = 1L;
@@ -106,10 +121,22 @@ public class ConfigurationPanel extends JPanel {
 				.addComponent(btnEMBOSSInPath)
 			)
 			.addGroup(layout.createParallelGroup()
-				.addComponent(lblNCBI, Alignment.CENTER)
-				.addComponent(this.txtNCBI)
-				.addComponent(btnNCBISelect)
-				.addComponent(btnNCBIInPath)
+				.addComponent(lblBedTools, Alignment.CENTER)
+				.addComponent(this.txtBedTools)
+				.addComponent(btnBedToolsSelect)
+				.addComponent(btnBedToolsInPath)
+			)
+			.addGroup(layout.createParallelGroup()
+				.addComponent(lblSplign, Alignment.CENTER)
+				.addComponent(this.txtSplign)
+				.addComponent(btnSplignSelect)
+				.addComponent(btnSplignInPath)
+			)
+			.addGroup(layout.createParallelGroup()
+				.addComponent(lblCompart, Alignment.CENTER)
+				.addComponent(this.txtCompart)
+				.addComponent(btnCompartSelect)
+				.addComponent(btnCompartInPath)
 			)
 		);
 		
@@ -118,25 +145,33 @@ public class ConfigurationPanel extends JPanel {
 				.addComponent(lblRepository)
 				.addComponent(lblBLAST)
 				.addComponent(lblEMBOSS)
-				.addComponent(lblNCBI)
+				.addComponent(lblBedTools)
+				.addComponent(lblSplign)
+				.addComponent(lblCompart)
 			)
 			.addGroup(layout.createParallelGroup()
 				.addComponent(this.txtRepository)
 				.addComponent(this.txtBLAST)
 				.addComponent(this.txtEMBOSS)
-				.addComponent(this.txtNCBI)
+				.addComponent(this.txtBedTools)
+				.addComponent(this.txtSplign)
+				.addComponent(this.txtCompart)
 			)
 			.addGroup(layout.createParallelGroup()
 				.addComponent(btnRepository)
 				.addComponent(btnBLASTSelect)
 				.addComponent(btnEMBOSSSelect)
-				.addComponent(btnNCBISelect)
+				.addComponent(btnBedToolsSelect)
+				.addComponent(btnSplignSelect)
+				.addComponent(btnCompartSelect)
 			)
 			.addGroup(layout.createParallelGroup()
 				.addComponent(this.btnBuildRepository)
 				.addComponent(btnBLASTInPath)
 				.addComponent(btnEMBOSSInPath)
-				.addComponent(btnNCBIInPath)
+				.addComponent(btnBedToolsInPath)
+				.addComponent(btnSplignInPath)
+				.addComponent(btnCompartInPath)
 			)
 		);
 		
@@ -214,15 +249,15 @@ public class ConfigurationPanel extends JPanel {
 			new SystemPathSelectionActionListener(this.txtEMBOSS, callbackCheckEMBOSS)
 		);
 		
-		final Callable<Boolean> callbackCheckNCBI = new Callable<Boolean>() {
+		final Callable<Boolean> callbackCheckBedTools = new Callable<Boolean>() {
 			@Override
 			public Boolean call() throws Exception {
-				if (ConfigurationPanel.this.isValidNCBIPath()) {
+				if (ConfigurationPanel.this.isValidBedToolsPath()) {
 					return true;
 				} else {
 					JOptionPane.showMessageDialog(
 						ConfigurationPanel.this, 
-						"Invalid NCBI binaries path. Please, change the selected path",
+						"Invalid bedtools binaries path. Please, change the selected path",
 						"Invalid Path",
 						JOptionPane.ERROR_MESSAGE
 					);
@@ -231,11 +266,59 @@ public class ConfigurationPanel extends JPanel {
 				}
 			}
 		};
-		btnNCBISelect.addActionListener(
-			new PathSelectionActionListener(this.txtNCBI, callbackCheckNCBI)
+		btnBedToolsSelect.addActionListener(
+			new PathSelectionActionListener(this.txtBedTools, callbackCheckBedTools)
 		);
-		btnNCBIInPath.addActionListener(
-			new SystemPathSelectionActionListener(this.txtNCBI, callbackCheckNCBI)
+		btnBedToolsInPath.addActionListener(
+			new SystemPathSelectionActionListener(this.txtBedTools, callbackCheckBedTools)
+		);
+		
+		final Callable<Boolean> callbackCheckSplign = new Callable<Boolean>() {
+			@Override
+			public Boolean call() throws Exception {
+				if (ConfigurationPanel.this.isValidSplignPath()) {
+					return true;
+				} else {
+					JOptionPane.showMessageDialog(
+						ConfigurationPanel.this, 
+						"Invalid splign binaries path. Please, change the selected path",
+						"Invalid Path",
+						JOptionPane.ERROR_MESSAGE
+					);
+					
+					return false;
+				}
+			}
+		};
+		btnSplignSelect.addActionListener(
+			new PathSelectionActionListener(this.txtSplign, callbackCheckSplign)
+		);
+		btnSplignInPath.addActionListener(
+			new SystemPathSelectionActionListener(this.txtSplign, callbackCheckSplign)
+		);
+		
+		final Callable<Boolean> callbackCheckCompart = new Callable<Boolean>() {
+			@Override
+			public Boolean call() throws Exception {
+				if (ConfigurationPanel.this.isValidCompartPath()) {
+					return true;
+				} else {
+					JOptionPane.showMessageDialog(
+						ConfigurationPanel.this, 
+						"Invalid compart binaries path. Please, change the selected path",
+						"Invalid Path",
+						JOptionPane.ERROR_MESSAGE
+					);
+					
+					return false;
+				}
+			}
+		};
+		btnCompartSelect.addActionListener(
+			new PathSelectionActionListener(this.txtCompart, callbackCheckCompart)
+		);
+		btnCompartInPath.addActionListener(
+			new SystemPathSelectionActionListener(this.txtCompart, callbackCheckCompart)
 		);
 	}
 
@@ -274,9 +357,19 @@ public class ConfigurationPanel extends JPanel {
 			null : new File(this.txtEMBOSS.getText()).getAbsolutePath();
 	}
 	
-	protected String getNCBIPath() {
-		return this.txtNCBI.getText().isEmpty() ?
-			null : new File(this.txtNCBI.getText()).getAbsolutePath();
+	protected String getBedToolsPath() {
+		return this.txtBedTools.getText().isEmpty() ?
+			null : new File(this.txtBedTools.getText()).getAbsolutePath();
+	}
+	
+	protected String getSplignPath() {
+		return this.txtSplign.getText().isEmpty() ?
+			null : new File(this.txtSplign.getText()).getAbsolutePath();
+	}
+	
+	protected String getCompartPath() {
+		return this.txtCompart.getText().isEmpty() ?
+			null : new File(this.txtCompart.getText()).getAbsolutePath();
 	}
 	
 	public boolean isValidRepositoryPath() {
@@ -293,8 +386,16 @@ public class ConfigurationPanel extends JPanel {
 		return this.controller.getManager().checkEMBOSSPath(getEMBOSSPath());
 	}
 
-	protected boolean isValidNCBIPath() {
-		return this.controller.getManager().checkNCBIPath(getNCBIPath());
+	protected boolean isValidBedToolsPath() {
+		return this.controller.getManager().checkBedToolsPath(getBedToolsPath());
+	}
+	
+	protected boolean isValidSplignPath() {
+		return this.controller.getManager().checkSplignPath(getSplignPath());
+	}
+	
+	protected boolean isValidCompartPath() {
+		return this.controller.getManager().checkCompartPath(getCompartPath());
 	}
 	
 	protected void buildRepository() {
@@ -328,13 +429,17 @@ public class ConfigurationPanel extends JPanel {
 		if (this.isValidRepositoryPath() && this.isValidBLASTPath()) {
 			final String blastPath = this.getBLASTPath();
 			final String embossPath = this.getEMBOSSPath();
-			final String ncbiPath = this.getNCBIPath();
+			final String bedToolsPath = this.getBedToolsPath();
+			final String splignPath = this.getSplignPath();
+			final String compartPath = this.getCompartPath();
 			
 			return new PathsConfiguration(
 				this.getRepositoryDirectory(), 
 				blastPath == null ? null : new File(blastPath),
 				embossPath == null ? null : new File(embossPath),
-				ncbiPath == null ? null : new File(ncbiPath)
+				bedToolsPath == null ? null : new File(bedToolsPath),
+				splignPath == null ? null : new File(splignPath),
+				compartPath == null ? null : new File(compartPath)
 			);
 		} else {
 			return null;

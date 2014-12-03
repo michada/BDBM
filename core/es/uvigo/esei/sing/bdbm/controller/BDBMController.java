@@ -7,9 +7,11 @@ import java.util.Map;
 
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
-import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.fasta.FastaParseException;
 import es.uvigo.esei.sing.bdbm.fasta.FastaUtils.RenameMode;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
@@ -36,7 +38,9 @@ public interface BDBMController {
 	public abstract void setRepositoryManager(BDBMRepositoryManager repositoryManager);
 	public abstract void setBlastBinariesExecutor(BLASTBinariesExecutor binariesExecutor);
 	public abstract void setEmbossBinariesExecutor(EMBOSSBinariesExecutor eBinariesExecutor);
-	public abstract void setNcbiBinariesExecutor(NCBIBinariesExecutor eBinariesExecutor);
+	public abstract void setBedToolsBinariesExecutor(BedToolsBinariesExecutor bBinariesExecutor);
+	public abstract void setSplignBinariesExecutor(SplignBinariesExecutor sBinariesExecutor);
+	public abstract void setCompartBinariesExecutor(CompartBinariesExecutor cBinariesExecutor);
 
 	public abstract boolean exists(SequenceEntity entity);
 

@@ -14,10 +14,12 @@ import org.apache.commons.io.FileUtils;
 
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionResult;
-import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.fasta.FastaParseException;
 import es.uvigo.esei.sing.bdbm.fasta.FastaUtils;
 import es.uvigo.esei.sing.bdbm.fasta.FastaUtils.RenameMode;
@@ -50,22 +52,28 @@ public class DefaultBDBMController implements BDBMController {
 	private BDBMRepositoryManager repositoryManager;
 	private BLASTBinariesExecutor blastBinariesExecutor;
 	private EMBOSSBinariesExecutor embossBinariesExecutor;
-	private NCBIBinariesExecutor ncbiBinariesExecutor;
+	private BedToolsBinariesExecutor bedToolsBinariesExecutor;
+	private SplignBinariesExecutor splignBinariesExecutor;
+	private CompartBinariesExecutor compartBinariesExecutor;
 	
 	public DefaultBDBMController() {
-		this(null, null, null, null);
+		this(null, null, null, null, null, null);
 	}
 	
 	public DefaultBDBMController(
 		BDBMRepositoryManager repositoryManager, 
 		BLASTBinariesExecutor blastBinariesExecutor,
 		EMBOSSBinariesExecutor embossBinariesExecutor,
-		NCBIBinariesExecutor ncbiBinariesExecutor
+		BedToolsBinariesExecutor bedToolsBinariesExecutor,
+		SplignBinariesExecutor splignBinariesExecutor,
+		CompartBinariesExecutor compartBinariesExecutor
 	) {
 		this.repositoryManager = repositoryManager;
 		this.blastBinariesExecutor = blastBinariesExecutor;
 		this.embossBinariesExecutor = embossBinariesExecutor;
-		this.ncbiBinariesExecutor = ncbiBinariesExecutor;
+		this.bedToolsBinariesExecutor = bedToolsBinariesExecutor;
+		this.splignBinariesExecutor = splignBinariesExecutor;
+		this.compartBinariesExecutor = compartBinariesExecutor;
 	}
 	
 	@Override
@@ -84,8 +92,18 @@ public class DefaultBDBMController implements BDBMController {
 	}
 	
 	@Override
-	public void setNcbiBinariesExecutor(NCBIBinariesExecutor ncbiBinariesExecutor) {
-		this.ncbiBinariesExecutor = ncbiBinariesExecutor;
+	public void setBedToolsBinariesExecutor(BedToolsBinariesExecutor bedToolsBinariesExecutor) {
+		this.bedToolsBinariesExecutor = bedToolsBinariesExecutor;
+	}
+	
+	@Override
+	public void setSplignBinariesExecutor(SplignBinariesExecutor sBinariesExecutor) {
+		this.splignBinariesExecutor = sBinariesExecutor;
+	}
+	
+	@Override
+	public void setCompartBinariesExecutor(CompartBinariesExecutor cBinariesExecutor) {
+		this.compartBinariesExecutor = cBinariesExecutor;
 	}
 	
 	@Override
@@ -636,7 +654,13 @@ public class DefaultBDBMController implements BDBMController {
 		if (fastaManager.exists(fasta)) {
 			throw new IllegalArgumentException("Fasta already exists: " + outputName);
 		} else {
-			final ExecutionResult result = this.ncbiBinariesExecutor.splignCompart(
+			final SplignCompartPipeline pipeline = new SplignCompartPipeline(
+				this.bedToolsBinariesExecutor,
+				this.splignBinariesExecutor,
+				this.compartBinariesExecutor
+			);
+			
+			final ExecutionResult result = pipeline.splignCompart(
 				genomeFasta, genomeDB, cdsFasta, cdsDB, fasta
 			);
 			

@@ -44,9 +44,11 @@ import es.uvigo.esei.sing.bdbm.controller.DefaultBDBMController;
 import es.uvigo.esei.sing.bdbm.environment.BDBMEnvironment;
 import es.uvigo.esei.sing.bdbm.environment.DefaultBDBMEnvironment;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.BinaryCheckException;
+import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactoryBuilder;
-import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.paths.RepositoryPaths;
 import es.uvigo.esei.sing.bdbm.gui.command.BDBMCommandAction;
 import es.uvigo.esei.sing.bdbm.gui.command.dialogs.BLASTDBAliasToolCommandDialog;
@@ -219,7 +221,7 @@ public class GUI implements Observer {
 			GetORFCommandDialog.class
 		));
 		
-		// NCBI Operations
+		// Splign-Compart Operations
 		menuOperations.add(new BDBMCommandAction(
 			bdbmController,
 			new SplignCompartCommand(bdbmController),
@@ -375,9 +377,8 @@ public class GUI implements Observer {
 			if (askForEmbossPath(parent) && 
 				chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION
 			) {
-				final File EmbossPath = chooser.getSelectedFile();
 				try {
-					env.changeEMBOSSPath(EmbossPath, false);
+					env.changeEMBOSSPath(chooser.getSelectedFile(), false);
 				} catch (IOException ioe) {
 					showIOError(parent, ioe);
 				}
@@ -421,9 +422,8 @@ public class GUI implements Observer {
 			if (askForBlastPath(parent) && 
 				chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION
 			) {
-				final File blastPath = chooser.getSelectedFile();
 				try {
-					env.changeBLASTPath(blastPath, false);
+					env.changeBLASTPath(chooser.getSelectedFile(), false);
 				} catch (IOException ioe) {
 					showIOError(parent, ioe);
 				}
@@ -447,30 +447,29 @@ public class GUI implements Observer {
 		}
 	}
 
-	private static boolean askForNcbiPath(final Component parent) {
+	private static boolean askForBedToolsPath(final Component parent) {
 		return JOptionPane.showConfirmDialog(
 			parent, 
-			"Missing or invalid NCBI binaries path. Do you want to select a new path?\n"
+			"Missing or invalid bedtools binaries path. Do you want to select a new path?\n"
 			+ "(If you select 'No', program will exit)",
-			"Invalid NCBI",
+			"Invalid BedTools",
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.ERROR_MESSAGE
 		) == JOptionPane.YES_OPTION;
 	}
 
-	private static boolean checkNcbiBinaries(DefaultBDBMEnvironment env, Component parent)
+	private static boolean checkBedToolsBinaries(DefaultBDBMEnvironment env, Component parent)
 	throws IOException {
-		final JFileChooser chooser = new JFileChooser(env.getNCBIBinaries().getBaseDirectory());
+		final JFileChooser chooser = new JFileChooser(env.getBedToolsBinaries().getBaseDirectory());
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setMultiSelectionEnabled(false);
 		
-		while (!checkNcbiPath(env)) {
-			if (askForNcbiPath(parent) && 
+		while (!checkBedToolsPath(env)) {
+			if (askForBedToolsPath(parent) && 
 				chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION
 			) {
-				final File ncbiPath = chooser.getSelectedFile();
 				try {
-					env.changeNCBIPath(ncbiPath, false);
+					env.changeBedToolsPath(chooser.getSelectedFile(), false);
 				} catch (IOException ioe) {
 					showIOError(parent, ioe);
 				}
@@ -484,9 +483,101 @@ public class GUI implements Observer {
 		return true;
 	}
 
-	private static boolean checkNcbiPath(final BDBMEnvironment env) {
+	private static boolean checkBedToolsPath(final BDBMEnvironment env) {
 		try {
-			NCBIBinaryToolsFactoryBuilder.newFactory(env.getNCBIBinaries());
+			BedToolsBinaryToolsFactoryBuilder.newFactory(env.getBedToolsBinaries());
+			
+			return true;
+		} catch (BinaryCheckException bbce) {
+			return false;
+		}
+	}
+
+	private static boolean askForSplignPath(final Component parent) {
+		return JOptionPane.showConfirmDialog(
+			parent, 
+			"Missing or invalid splign binaries path. Do you want to select a new path?\n"
+			+ "(If you select 'No', program will exit)",
+			"Invalid Splign",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.ERROR_MESSAGE
+		) == JOptionPane.YES_OPTION;
+	}
+
+	private static boolean checkSplignBinaries(DefaultBDBMEnvironment env, Component parent)
+	throws IOException {
+		final JFileChooser chooser = new JFileChooser(env.getSplignBinaries().getBaseDirectory());
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setMultiSelectionEnabled(false);
+		
+		while (!checkSplignPath(env)) {
+			if (askForSplignPath(parent) && 
+				chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION
+			) {
+				try {
+					env.changeSplignPath(chooser.getSelectedFile(), false);
+				} catch (IOException ioe) {
+					showIOError(parent, ioe);
+				}
+			} else {
+				return false;
+			}
+		}
+		
+		env.saveToProperties();
+		
+		return true;
+	}
+
+	private static boolean checkSplignPath(final BDBMEnvironment env) {
+		try {
+			SplignBinaryToolsFactoryBuilder.newFactory(env.getSplignBinaries());
+			
+			return true;
+		} catch (BinaryCheckException bbce) {
+			return false;
+		}
+	}
+
+	private static boolean askForCompartPath(final Component parent) {
+		return JOptionPane.showConfirmDialog(
+			parent, 
+			"Missing or invalid compart binaries path. Do you want to select a new path?\n"
+			+ "(If you select 'No', program will exit)",
+			"Invalid Compart",
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.ERROR_MESSAGE
+		) == JOptionPane.YES_OPTION;
+	}
+
+	private static boolean checkCompartBinaries(DefaultBDBMEnvironment env, Component parent)
+	throws IOException {
+		final JFileChooser chooser = new JFileChooser(env.getCompartBinaries().getBaseDirectory());
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setMultiSelectionEnabled(false);
+		
+		while (!checkCompartPath(env)) {
+			if (askForCompartPath(parent) && 
+				chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION
+			) {
+				try {
+					env.changeCompartPath(chooser.getSelectedFile(), false);
+				} catch (IOException ioe) {
+					showIOError(parent, ioe);
+				}
+			} else {
+				return false;
+			}
+		}
+		
+		env.saveToProperties();
+		
+		return true;
+	}
+
+	private static boolean checkCompartPath(final BDBMEnvironment env) {
+		try {
+			CompartBinaryToolsFactoryBuilder.newFactory(env.getCompartBinaries());
 			
 			return true;
 		} catch (BinaryCheckException bbce) {
@@ -614,8 +705,12 @@ public class GUI implements Observer {
 						System.exit(11);
 					} else if (!checkEmbossBinaries(env, splash)) {
 						System.exit(12);
-					} else if (!checkNcbiBinaries(env, splash)) {
+					} else if (!checkBedToolsBinaries(env, splash)) {
 						System.exit(13);
+					} else if (!checkSplignBinaries(env, splash)) {
+						System.exit(14);
+					} else if (!checkCompartBinaries(env, splash)) {
+						System.exit(15);
 					} else {
 						gui.initGUI();
 						gui.showMainFrame();

@@ -120,7 +120,6 @@ public class ConfigurationDialog extends JDialog {
 		
 		final ConfigurationPanel configurationPanel = new ConfigurationPanel(controller);
 		
-		
 		final JButton btnStore = new JButton(new AbstractAction("Save changes") {
 			private static final long serialVersionUID = 1L;
 

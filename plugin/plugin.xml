@@ -1,0 +1,282 @@
+<plugin start="true">
+	<uid>bdbm</uid>
+	<name>BDBM</name>
+	<version>0.0.1</version>
+	
+	<!-- lifecycle class. Used to detect when the plugin is started. The class should inherit from org.platonos.pluginengine.PluginLifecycle-->
+	<lifecycleclass>es.uvigo.esei.sing.bdbm.BDBMLifecycle</lifecycleclass>
+
+	<!-- DEPENCENCIES: If you need classes from other plugins, you need a dependency! NOTE: If you need classes from plugins that you extend (for example, the core) you don't need to put the dependency. NOTE: This dependency is a sample. If you uncomment the following lines the plugin will fail! -->
+
+	<dependencies>
+		<dependency uid="aibench.workbench"/>
+		<dependency uid="aibench.core"/>
+	</dependencies>
+
+	<!-- EXTENSIONS: The extensions that this plugin is connected to -->
+	<extensions>
+		<!-- EXTENSION 1: A sample operation, extending the core. Please note: you can put as many operations as you wish: one extension per operation -->
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.nucleotide.ListNucleotidesDB"
+		>
+			<operation-description
+				path="1@Project" 
+				uid="es.uvigo.esei.sing.bdbm.operations.nucleotide.listnucleotidesdb"
+				shortcut="1"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.protein.ListProteinsDB"
+		>
+			<operation-description
+				path="2@Project" 
+				uid="es.uvigo.esei.sing.bdbm.operations.protein.listnucleotidesdb"
+				shortcut="2"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.BLASTN"
+		>
+			<operation-description
+				path="1@Operations" 
+				uid="es.uvigo.esei.sing.bdbm.operations.BLASTN"
+				shortcut="8"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.nucleotide.NucleotideMakeBLASTDB"
+		>
+			<operation-description
+				path="4@Operations/1@Nucleotide" 
+				uid="es.uvigo.esei.sing.bdbm.operations.nucleotide.nucleotidemakeblasdb"
+				shortcut="3"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.nucleotide.NucleotideAggregateDatabases"
+		>
+			<operation-description
+				path="4@Operations/2@Nucleotide" 
+				uid="es.uvigo.esei.sing.bdbm.operations.nucleotide.nucleotideaggregatedatabases"
+				shortcut="4"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.nucleotide.NucleotideRetrieveSearchEntry"
+		>
+			<operation-description
+				path="4@Operations/3@Nucleotide" 
+				uid="es.uvigo.esei.sing.bdbm.operations.nucleotide.nucleotideretrievesearchentry"
+				shortcut="5"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.protein.ProteinMakeBLASTDB"
+		>
+			<operation-description
+				path="5@Operations/1@Protein" 
+				uid="es.uvigo.esei.sing.bdbm.operations.protein.proteinmakeblasdb"
+				shortcut="5"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.protein.ProteinAggregateDatabases"
+		>
+			<operation-description
+				path="5@Operations/2@Protein" 
+				uid="es.uvigo.esei.sing.bdbm.operations.protein.proteinaggregatedatabases"
+				shortcut="6"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" 
+			name="aibench.core.operation-definition"
+			class="es.uvigo.esei.sing.bdbm.operations.protein.ProteinRetrieveSearchEntry"
+		>
+			<operation-description
+				path="5@Operations/3@Protein" 
+				uid="es.uvigo.esei.sing.bdbm.operations.protein.proteinretrievesearchentry"
+				shortcut="7"
+			/>
+		</extension>
+		
+		<extension uid="aibench.core" name="aibench.core.transformer-definition">
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideDatabaseWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideFastaWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideExportWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideExport" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideSearchEntryWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideSearchEntry" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinDatabaseWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.ProteinDatabase" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinFastaWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.ProteinFasta" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinExportWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.ProteinExport" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinSearchEntryWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.ProteinSearchEntry" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrap"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideDatabaseWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.Database" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideFastaWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.Fasta" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideExportWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.Export" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.NucleotideSearchEntryWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinDatabaseWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.Database" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinFastaWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.Fasta" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinExportWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.Export" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+			<transformer-description 
+				sourceType="es.uvigo.esei.sing.bdbm.datatypes.ProteinSearchEntryWrapper" 
+				destinyType="es.uvigo.esei.sing.bdbm.persistence.entities.SearchEntry" 
+				transformerClass="es.uvigo.esei.sing.bdbm.datatypes.SequenceEntityWrapper"
+				methodName="unwrapToBase"
+			/>
+		</extension>
+	<!-- ========================= EXAMPLES ======================================= -->
+		
+		<!-- CORE EXTENSION SAMPLES: Operations, Datatypes... -->
+
+		<!-- "Transformers". A transformer definition tells AIBench that you have a method to convert a instance from one class to an instance of another class -->
+		<!-- 
+		<extension uid="aibench.core" name="aibench.core.transformer-definition">
+			<transformer-description 
+				sourceType="java.lang.String" 
+				destinyType="es.uvigo.ei.sing.aibench.shell.DummyDataType" 
+				transformerClass="es.uvigo.ei.sing.aibench.shell.Transformer"
+				methodName="transform"
+				/>
+	</extension>
+	-->
+
+		<!-- WORKBENCH EXTENSION SAMPLES (GUI related) -->
+		
+		<!-- Workbench extensions (GUI related) -->
+		
+		<!-- "Datatype Viewers". Map a class (datatype) to a viewer (JComponent). Remember: This JComponent must have a constructor taking the datatype instance -->
+		<!--
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<view name="Sample Datatype View" datatype="sampleplugin.OneClass" class="sampleplugin.OneViewComponent" help="view.sampleplugin.oneclass"/>		
+		</extension>
+		-->
+		
+		<!-- "Custom icons" -->
+		<!--
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<icon-operation operation="sampleplugin.sumoperationid" icon="icons/oneicon.png"/>
+			<big-icon-operation	operation="sampleplugin.sumoperationid" icon="icons/onebigicon.png"/>
+			<icon-datatype datatype="sampleplugin.OneClass" icon="icons/othericon.png"/> 
+		</extension>
+		-->
+		
+		<!-- "Custom input dialogs". If you don't like the default generated input dialog for some operation, put your own here -->
+		<!--
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<gui-operation  operation="org.myorg.myoperationid" class="org.myorg.MyComponent"/>
+		</extension>
+		-->
+		
+		<!-- "Custom operation visibility". By default, all operations are displayed everywhere (main menu, popup menu and dialogs). But if you want to change this behaviour, use this option.
+		The current available options are (you can put more than one, separated with spaces)
+		MENU - the operation can be accessed from the main menu
+		POPUP - the operation can be accessed from the popup menu showed in the trees
+		DIALOG - the operation can be accessed from dialogs
+		TOOLBAR - the operation can be accessed from the toolbar
+		NONE - the operation is hidden in the GUI  
+		-->
+		<!--
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<operation-visibility operation="stringeditor.createroot" visibility="MENU POPUP"/>
+		</extension>
+		-->
+		
+		<!-- "Custom components". Components displayed in the main window. You can choose where to place it
+			using the slotid tag, so please see the /conf/template.xml file to know which slots are available
+			The component is any JComponent -->
+		<!--
+		<extension uid="aibench.workbench" name="aibench.workbench.view" >
+			<component slotid="bottom" componentid="aibench.shell.shellWindow" name="AIBench Shell" class="es.uvigo.ei.sing.aibench.shell.ShellComponent"/>
+		</extension>
+		-->
+	</extensions>
+</plugin>

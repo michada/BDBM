@@ -21,11 +21,15 @@ import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactory;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinaryToolsFactory;
+import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.BinaryCheckException;
+import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinaryToolsFactory;
+import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactory;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactoryBuilder;
-import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactory;
-import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinaryToolsFactory;
+import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.paths.RepositoryPaths;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 import es.uvigo.esei.sing.bdbm.persistence.DefaultBDBMRepositoryManager;
@@ -121,7 +125,9 @@ public class BDBM extends Observable {
 			
 			final BLASTBinaryToolsFactory blastFactory;
 			final EMBOSSBinaryToolsFactory embossFactory;
-			final NCBIBinaryToolsFactory ncbiFactory;
+			final BedToolsBinaryToolsFactory bedToolsFactory;
+			final SplignBinaryToolsFactory splignFactory;
+			final CompartBinaryToolsFactory compartFactory;
 			
 			try {
 				blastFactory = BLASTBinaryToolsFactoryBuilder.newFactory(
@@ -140,18 +146,36 @@ public class BDBM extends Observable {
 			}
 			
 			try {
-				ncbiFactory = NCBIBinaryToolsFactoryBuilder.newFactory(
-					this.getEnvironment().getNCBIBinaries()
+				bedToolsFactory = BedToolsBinaryToolsFactoryBuilder.newFactory(
+					this.getEnvironment().getBedToolsBinaries()
 				);
 			} catch (BinaryCheckException bce) {
-				throw new IllegalStateException("Invalid NCBI binaries", bce);
+				throw new IllegalStateException("Invalid bedtools binaries", bce);
+			}
+			
+			try {
+				splignFactory = SplignBinaryToolsFactoryBuilder.newFactory(
+					this.getEnvironment().getSplignBinaries()
+				);
+			} catch (BinaryCheckException bce) {
+				throw new IllegalStateException("Invalid splign binaries", bce);
+			}
+			
+			try {
+				compartFactory = CompartBinaryToolsFactoryBuilder.newFactory(
+					this.getEnvironment().getCompartBinaries()
+				);
+			} catch (BinaryCheckException bce) {
+				throw new IllegalStateException("Invalid compart binaries", bce);
 			}
 			
 			this.controller = new DefaultBDBMController(
 				this.getRepositoryManager(),
 				blastFactory.createExecutor(),
 				embossFactory.createExecutor(),
-				ncbiFactory.createExecutor()
+				bedToolsFactory.createExecutor(),
+				splignFactory.createExecutor(),
+				compartFactory.createExecutor()
 			);
 			
 			final RepositoryPaths repositoryPaths = this.environment.getRepositoryPaths();

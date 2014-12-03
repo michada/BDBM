@@ -14,5 +14,10 @@ dists
 lib_files
 workingRepository
 repository
+novo-repositorio
+data
+scripts
+testlib_files
 *.tar.gz
 *_bin
+*.tmp

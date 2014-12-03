@@ -5,15 +5,21 @@ import java.io.IOException;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.BDBMEnvironment;
 import es.uvigo.esei.sing.bdbm.environment.binaries.BLASTBinaries;
+import es.uvigo.esei.sing.bdbm.environment.binaries.BedToolsBinaries;
+import es.uvigo.esei.sing.bdbm.environment.binaries.CompartBinaries;
 import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
-import es.uvigo.esei.sing.bdbm.environment.binaries.NCBIBinaries;
+import es.uvigo.esei.sing.bdbm.environment.binaries.SplignBinaries;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.BinaryCheckException;
+import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinaryToolsFactoryBuilder;
-import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinariesExecutor;
-import es.uvigo.esei.sing.bdbm.environment.execution.NCBIBinaryToolsFactoryBuilder;
+import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinariesExecutor;
+import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinaryToolsFactoryBuilder;
 import es.uvigo.esei.sing.bdbm.persistence.BDBMRepositoryManager;
 
 public class BDBMManager {
@@ -39,8 +45,14 @@ public class BDBMManager {
 		this.controller.setEmbossBinariesExecutor(
 			createEMBOSSBinariesExecutor(this.getEnvironment().getEMBOSSBinaries())
 		);
-		this.controller.setNcbiBinariesExecutor(
-			createNCBIBinariesExecutor(this.getEnvironment().getNCBIBinaries())
+		this.controller.setBedToolsBinariesExecutor(
+			createBedToolsBinariesExecutor(this.getEnvironment().getBedToolsBinaries())
+		);
+		this.controller.setSplignBinariesExecutor(
+			createSplignBinariesExecutor(this.getEnvironment().getSplignBinaries())
+		);
+		this.controller.setCompartBinariesExecutor(
+			createCompartBinariesExecutor(this.getEnvironment().getCompartBinaries())
 		);
 	}
 	
@@ -56,9 +68,21 @@ public class BDBMManager {
 			.createExecutor();
 	}
 	
-	private NCBIBinariesExecutor createNCBIBinariesExecutor(NCBIBinaries binaries)
+	private BedToolsBinariesExecutor createBedToolsBinariesExecutor(BedToolsBinaries binaries)
 	throws BinaryCheckException {
-		return NCBIBinaryToolsFactoryBuilder.newFactory(binaries)
+		return BedToolsBinaryToolsFactoryBuilder.newFactory(binaries)
+			.createExecutor();
+	}
+	
+	private SplignBinariesExecutor createSplignBinariesExecutor(SplignBinaries binaries)
+	throws BinaryCheckException {
+		return SplignBinaryToolsFactoryBuilder.newFactory(binaries)
+			.createExecutor();
+	}
+	
+	private CompartBinariesExecutor createCompartBinariesExecutor(CompartBinaries binaries)
+	throws BinaryCheckException {
+		return CompartBinaryToolsFactoryBuilder.newFactory(binaries)
 			.createExecutor();
 	}
 	
@@ -96,10 +120,32 @@ public class BDBMManager {
 		}
 	}
 
-	public boolean checkNCBIPath(String path) {
+	public boolean checkBedToolsPath(String path) {
 		try {
-			this.createNCBIBinariesExecutor(
-				this.getEnvironment().createNCBIBinaries(path)
+			this.createBedToolsBinariesExecutor(
+				this.getEnvironment().createBedToolsBinaries(path)
+			);
+			return true;
+		} catch (BinaryCheckException e) {
+			return false;
+		}
+	}
+
+	public boolean checkSplignPath(String path) {
+		try {
+			this.createSplignBinariesExecutor(
+				this.getEnvironment().createSplignBinaries(path)
+			);
+			return true;
+		} catch (BinaryCheckException e) {
+			return false;
+		}
+	}
+
+	public boolean checkCompartPath(String path) {
+		try {
+			this.createCompartBinariesExecutor(
+				this.getEnvironment().createCompartBinaries(path)
 			);
 			return true;
 		} catch (BinaryCheckException e) {
