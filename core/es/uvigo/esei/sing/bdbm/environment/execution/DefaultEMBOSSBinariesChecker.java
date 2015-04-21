@@ -28,13 +28,19 @@ public class DefaultEMBOSSBinariesChecker implements EMBOSSBinariesChecker {
 	@Override
 	public void checkAll() throws BinaryCheckException {
 		this.checkGetORF();
+		this.checkRevseq();
 	}
 	
 	@Override
 	public void checkGetORF() throws BinaryCheckException {
-		DefaultEMBOSSBinariesChecker.checkCommand(this.eBinaries.getGetORF());
+		checkCommand(this.eBinaries.getGetORF());
 	}
 
+	@Override
+	public void checkRevseq() throws BinaryCheckException {
+		checkCommand(this.eBinaries.getRevseq());
+	}
+	
 	protected static void checkCommand(String command) throws BinaryCheckException {
 		final Runtime runtime = Runtime.getRuntime();
 		

@@ -10,5 +10,10 @@ public interface EMBOSSBinaries extends Binaries {
 	public final static String GETORF_PROP = 
 		EMBOSS_BINARIES_PREFIX + "getorf";
 	
+	public final static String REVSEQ_PROP = 
+		EMBOSS_BINARIES_PREFIX + "revseq";
+	
 	public abstract String getGetORF();
+	
+	public abstract String getRevseq();
 }

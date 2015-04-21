@@ -57,4 +57,17 @@ implements EMBOSSBinariesExecutor {
 			"-find", "3"
 		);
 	}
+
+	@Override
+	public ExecutionResult executeRevseq(
+		NucleotideFasta fasta,
+		NucleotideFasta outputFasta
+	) throws InterruptedException, ExecutionException, IOException {
+		return AbstractBinariesExecutor.executeCommand(
+			LOG,
+			this.binaries.getGetORF(), 
+			"-sequence", fasta.getFile().getAbsolutePath(),
+			"-outseq", outputFasta.getFile().getAbsolutePath()
+		);
+	}
 }

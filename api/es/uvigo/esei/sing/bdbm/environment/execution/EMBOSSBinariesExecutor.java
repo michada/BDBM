@@ -14,4 +14,9 @@ public interface EMBOSSBinariesExecutor extends BinariesExecutor<EMBOSSBinaries>
 		int minSize,
 		int maxSize
 	) throws InterruptedException, ExecutionException, IOException;
+	
+	public ExecutionResult executeRevseq(
+		NucleotideFasta fasta,
+		NucleotideFasta outputFasta
+	) throws InterruptedException, ExecutionException, IOException;
 }

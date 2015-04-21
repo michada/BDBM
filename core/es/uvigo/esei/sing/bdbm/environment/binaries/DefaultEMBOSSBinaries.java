@@ -4,16 +4,17 @@ import java.io.File;
 import java.util.Map;
 
 import es.uvigo.esei.sing.bdbm.environment.EMBOSSEnvironmentFactory;
-import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
 
 public class DefaultEMBOSSBinaries implements EMBOSSBinaries {
 	private File baseDirectory;
 	private String getORF;
+	private String revseq;
 	
 	public DefaultEMBOSSBinaries() {
 		this(
 			null,
-			defaultGetORF()
+			defaultGetORF(),
+			defaultRevseq()
 		);
 	}
 	
@@ -26,15 +27,19 @@ public class DefaultEMBOSSBinaries implements EMBOSSBinaries {
 			baseDirectory,
 			baseDirectory == null ? 
 				defaultGetORF() : 
-				new File(baseDirectory, defaultGetORF()).getAbsolutePath()
+				baseDirectory.toPath().resolve(defaultGetORF()).toString(),
+			baseDirectory == null ?
+				defaultRevseq() :
+				baseDirectory.toPath().resolve(defaultRevseq()).toString()
 		);
 	}
 	
 	public DefaultEMBOSSBinaries(
-		File baseDirectory, String getORF
+		File baseDirectory, String getORF, String revseq
 	) {
 		this.baseDirectory = baseDirectory;
 		this.getORF = getORF;
+		this.revseq = revseq;
 	}
 	
 	public void setBaseDirectory(String path) {
@@ -65,8 +70,21 @@ public class DefaultEMBOSSBinaries implements EMBOSSBinaries {
 		return this.getORF;
 	}
 	
+	public void setRevseq(String revseq) {
+		this.revseq = revseq;
+	}
+
+	@Override
+	public String getRevseq() {
+		return this.revseq;
+	}
+	
 	private static String defaultGetORF() {
 		return EMBOSSEnvironmentFactory.createEnvironment().getDefaultGetORF();
+	}
+	
+	private static String defaultRevseq() {
+		return EMBOSSEnvironmentFactory.createEnvironment().getDefaultRevseq();
 	}
 	
 	public void setProperties(Map<String, String> props) {
@@ -76,6 +94,10 @@ public class DefaultEMBOSSBinaries implements EMBOSSBinaries {
 		
 		if (props.containsKey(EMBOSSBinaries.GETORF_PROP)) {
 			this.setGetORF(props.get(EMBOSSBinaries.GETORF_PROP));
+		}
+		
+		if (props.containsKey(EMBOSSBinaries.REVSEQ_PROP)) {
+			this.setRevseq(props.get(EMBOSSBinaries.REVSEQ_PROP));
 		}
 	}
 }

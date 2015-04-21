@@ -4,4 +4,5 @@ import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
 
 public interface EMBOSSBinariesChecker extends BinariesChecker<EMBOSSBinaries> {
 	public void checkGetORF() throws BinaryCheckException;
+	public void checkRevseq() throws BinaryCheckException;
 }

@@ -12,4 +12,9 @@ public class LinuxEMBOSSEnvironment implements EMBOSSEnvironment {
 	public String getDefaultGetORF() {
 		return "getorf";
 	}
+	
+	@Override
+	public String getDefaultRevseq() {
+		return "revseq";
+	}
 }
