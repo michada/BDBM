@@ -1,5 +1,6 @@
 package es.uvigo.esei.sing.bdbm.environment.execution;
 
+import java.io.File;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -42,10 +43,12 @@ implements CompartBinariesExecutor {
 	@Override
 	public ExecutionResult compart(String qdb, String sdb, InputLineCallback ... callbacks)
 	throws ExecutionException, InterruptedException {
-		return AbstractBinariesExecutor.executeCommand(
+		return executeCommand(
 			LOG,
 			false,
 			Arrays.asList(callbacks),
+			new String[0],
+			new File(qdb).getParentFile(),
 			this.binaries.getCompart(), 
 			"-qdb", qdb,
 			"-sdb", sdb

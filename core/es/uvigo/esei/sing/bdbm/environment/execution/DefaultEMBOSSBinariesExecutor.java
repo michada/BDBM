@@ -1,7 +1,5 @@
 package es.uvigo.esei.sing.bdbm.environment.execution;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +43,7 @@ implements EMBOSSBinariesExecutor {
 		NucleotideFasta orf,
 		int minSize,
 		int maxSize
-	) throws InterruptedException, ExecutionException, IOException {
+	) throws InterruptedException, ExecutionException {
 		return AbstractBinariesExecutor.executeCommand(
 			LOG,
 			this.binaries.getGetORF(), 
@@ -62,10 +60,10 @@ implements EMBOSSBinariesExecutor {
 	public ExecutionResult executeRevseq(
 		NucleotideFasta fasta,
 		NucleotideFasta outputFasta
-	) throws InterruptedException, ExecutionException, IOException {
+	) throws InterruptedException, ExecutionException {
 		return AbstractBinariesExecutor.executeCommand(
 			LOG,
-			this.binaries.getGetORF(), 
+			this.binaries.getRevseq(), 
 			"-sequence", fasta.getFile().getAbsolutePath(),
 			"-outseq", outputFasta.getFile().getAbsolutePath()
 		);

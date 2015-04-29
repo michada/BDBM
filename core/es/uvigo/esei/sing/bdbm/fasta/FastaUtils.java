@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -138,6 +139,10 @@ public class FastaUtils {
 	
 	public static void prefixFastaSequenceRenaming(File fastaFile, final String prefix, final boolean keepNames, final boolean addIndex, final String separator, final int fragmentLength, final PrintWriter writer)
 	throws FastaParseException, IOException {
+		if (prefix == null && !addIndex && !keepNames) {
+			throw new IllegalArgumentException("At least prefix must be not null or addIndex true or keepNames true");
+		}
+		
 		final FastaParser parser = new DefaultFastaParser();
 		
 		parser.addParseListener(createFastaParser(fragmentLength, new SequenceRenamer() {
@@ -145,11 +150,19 @@ public class FastaUtils {
 			
 			@Override
 			public void sequenceNameRead(File file, String sequenceName) {
-				writer.print(">" + prefix);
-				if (addIndex)
-					writer.print(separator + prefixCounter++);
-				if (keepNames)
-					writer.print(separator + sequenceName.substring(1));
+				writer.print(">");
+				
+				if (prefix != null)
+					writer.print(prefix);
+				
+				if (addIndex) {
+					if (prefix != null) writer.print(separator);
+					writer.print(prefixCounter++);
+				}
+				if (keepNames) {
+					if (prefix != null || addIndex) writer.print(separator);
+					writer.print(sequenceName.substring(1));
+				}
 				writer.println();
 			}
 			
@@ -441,5 +454,123 @@ public class FastaUtils {
 				}
 			};
 		}
+	}
+
+	/**
+	 * Merges the sequences with the same name in the input FASTA file.
+	 * 
+	 * @param inputFasta input FASTA file.
+	 * @param writer output writer.
+	 * @throws IOException 
+	 * @throws FastaParseException 
+	 */
+	public static void mergeSequences(File inputFasta, PrintWriter writer, String ... ignoreSequences)
+	throws FastaParseException, IOException {
+		final Map<String, List<int[]>> index = indexFastaFile(inputFasta);
+		
+		try (final RandomAccessFile inputFastaFile = new RandomAccessFile(inputFasta, "r")) {
+			Arrays.sort(ignoreSequences);
+			for (Map.Entry<String, List<int[]>> entry : index.entrySet()) {
+				if (Arrays.binarySearch(ignoreSequences, entry.getKey().substring(1)) < 0) {
+					writer.println(entry.getKey());
+	
+					for (int[] location : entry.getValue()) {
+						final byte[] data = new byte[location[1] - location[0]];
+						inputFastaFile.seek(location[0]);
+						inputFastaFile.read(data);
+						
+						writer.append(new String(data));
+					}
+					
+					writer.println();
+				}
+			}
+		}
+	}
+	public static void mergeConsecutiveSequences(final File inputFasta, final PrintWriter writer, final String ... ignoreSequences)
+	throws FastaParseException, IOException {
+		Arrays.sort(ignoreSequences);
+		
+		final FastaParser parser = new DefaultFastaParser();
+		parser.addParseListener(new FastaParserAdapter() {
+			private boolean firstSequence;
+			private String currentSequence = null;
+			
+			@Override
+			public void parseStart(File file) throws FastaParseException {
+				this.firstSequence = true;
+			}
+			
+			@Override
+			public void sequenceNameRead(File file, String sequenceName)
+			throws FastaParseException {
+				if (Arrays.binarySearch(ignoreSequences, sequenceName.substring(1)) >= 0) {
+					this.currentSequence = null;
+				} else if (this.currentSequence == null || !this.currentSequence.equals(sequenceName)) {
+					this.currentSequence = sequenceName;
+					
+					if (this.firstSequence) {
+						this.firstSequence = false;
+					} else {
+						writer.println();
+					}
+					
+					writer.println(this.currentSequence);
+				}
+			}
+			
+			@Override
+			public void sequenceFragmentRead(File file, String sequenceFragment)
+			throws FastaParseException {
+				if (this.currentSequence != null) {
+					writer.print(sequenceFragment);
+				}
+			}
+			
+			@Override
+			public void parseEnd(File file) throws FastaParseException {
+				if (!this.firstSequence)
+					writer.println();
+			}
+		});
+		
+		parser.parse(inputFasta);
+	}
+
+	public static void removeSequences(final File inputFasta, final PrintWriter writer, final String ... sequences)
+	throws FastaParseException, IOException {
+		Arrays.sort(sequences);
+		
+		final FastaParser parser = new DefaultFastaParser();
+		parser.addParseListener(new FastaParserAdapter() {
+			private boolean ignoreSequence;
+			
+			@Override
+			public void sequenceNameRead(File file, String sequenceName)
+			throws FastaParseException {
+				if (Arrays.binarySearch(sequences, sequenceName.substring(1)) >= 0) {
+					this.ignoreSequence = true;
+				} else {
+					this.ignoreSequence = false;
+					writer.println(sequenceName);
+				}
+			}
+			
+			@Override
+			public void sequenceFragmentRead(File file, String sequenceFragment)
+			throws FastaParseException {
+				if (!this.ignoreSequence) {
+					writer.print(sequenceFragment);
+				}
+			}
+			
+			@Override
+			public void sequenceEnd(File file) throws FastaParseException {
+				if (!this.ignoreSequence)
+					writer.println();
+			}
+		});
+		
+		parser.parse(inputFasta);
 	}
 }

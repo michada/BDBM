@@ -3,7 +3,6 @@ package es.uvigo.esei.sing.bdbm.gui.command.dialogs;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 import javax.swing.JComboBox;
 
@@ -13,7 +12,6 @@ import es.uvigo.esei.sing.bdbm.cli.commands.SplignCompartCommand;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
 
 public class SplignCompartCommandDialog extends CommandDialog {
@@ -84,54 +82,6 @@ public class SplignCompartCommandDialog extends CommandDialog {
 			cmbFastas.addActionListener(alFastas);
 			
 			return cmbFastas;
-		} else if (option.equals(SplignCompartCommand.OPTION_GENOME_DB) ||
-			option.equals(SplignCompartCommand.OPTION_CDS_DB)
-		) {
-			final NucleotideDatabase[] nucleotideDatabases = 
-					this.controller.listNucleotideDatabases();
-				final JComboBox<NucleotideDatabase> cmbDatabases =
-					new JComboBox<>(nucleotideDatabases);
-				
-				if (receiver.hasOption(option)) {
-					for (NucleotideDatabase database : nucleotideDatabases) {
-						if (database.getName().equals(receiver.getValue(option))) {
-							cmbDatabases.setSelectedItem(database);
-							break;
-						}
-					}
-				} else {
-					final Object value = cmbDatabases.getSelectedItem();
-
-					if (value != null) {
-						final NucleotideDatabase database = (NucleotideDatabase) value;
-						receiver.setValue(
-							option, 
-							new File(database.getDirectory(), database.getName()).getAbsolutePath()
-						); 
-					}
-				}
-				
-				final ActionListener alDatabases = new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						final Object item = cmbDatabases.getSelectedItem();
-						
-						if (item == null) {
-							receiver.setValue(option, (String) null);
-						} else if (item instanceof NucleotideDatabase) {
-							final NucleotideDatabase database = (NucleotideDatabase) item;
-							final File dbDirectory = database.getDirectory();
-							receiver.setValue(
-								option, new File(dbDirectory, database.getName()).getAbsolutePath()
-							);
-						}
-					}
-				};
-				alDatabases.actionPerformed(null);
-				
-				cmbDatabases.addActionListener(alDatabases);
-				
-				return cmbDatabases;
 		} else {
 			return super.createComponentForOption(option, receiver);
 		}

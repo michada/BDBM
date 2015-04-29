@@ -152,16 +152,15 @@ public interface BDBMController {
 		boolean noNewLine,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException;
-	
+
 	public abstract NucleotideFasta splignCompart(
 		NucleotideFasta genomeFasta,
-		NucleotideDatabase genomeDB,
 		NucleotideFasta cdsFasta,
-		NucleotideDatabase cdsDB,
+		boolean concatenateExons,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException;
 	
-	public void reformatFasta(
+	public abstract void reformatFasta(
 		RenameMode mode, Fasta fasta, int fragmentLength, Map<String, Object> additionalParameters
 	) throws FastaParseException, IOException;
 	

@@ -1,6 +1,7 @@
 package es.uvigo.esei.sing.bdbm.environment.execution;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -198,6 +199,98 @@ public abstract class AbstractBinariesExecutor<B extends Binaries> implements Bi
 			throw new ExecutionException(-1, e, command);
 		}
 	}
+	
+	//TODO: Refactorize executeCommandMethods
+	protected static ExecutionResult executeCommand(
+		final Logger log, final boolean logOutput,
+		List<InputLineCallback> callbacks,
+		String[] envp, File workingDirectory,
+		String command, String ... params
+	) throws ExecutionException, InterruptedException {
+		if (callbacks.isEmpty()) {
+			return executeCommand(log, logOutput, command, params);
+		} else {
+			final List<InputLineCallback> newCallbacks = new ArrayList<>(callbacks);
+			
+			class LoggerNoOutputCallback implements InputLineCallback {
+				@Override
+				public void line(String line) {}
+				
+				@Override
+				public void inputFinished() {}
+				
+				@Override
+				public void inputStarted() {}
+				
+				@Override
+				public void info(String message) {
+					log.info(LogConfiguration.MARKER_EXECUTION_STD, message);
+				}
+				
+				@Override
+				public void error(String message, Exception e) {
+					log.error(LogConfiguration.MARKER_EXECUTION_ERROR, message, e);
+				}
+			};
+			
+			class LoggerCallback extends LoggerNoOutputCallback {
+				@Override
+				public void line(String line) {
+					if (logOutput)
+						log.info(LogConfiguration.MARKER_EXECUTION_STD, line);
+				}
+			};
+			
+			if (logOutput) {
+				newCallbacks.add(new LoggerCallback());
+			} else {
+				newCallbacks.add(new LoggerNoOutputCallback());
+			}
+			
+			return executeCommand(newCallbacks, envp, workingDirectory, command, params);
+		}
+	}
+	
+	protected static ExecutionResult executeCommand(
+		List<InputLineCallback> callbacks, 
+		String[] envp, File workingDirectory, String command,
+		String ... params
+	) throws ExecutionException, InterruptedException {
+		final String commandString = commandToString(command, params);
+		
+		notifyInfo(callbacks, "Executing command: " + commandString);
+		
+		final Runtime runtime = Runtime.getRuntime();
+		
+		try {
+			inputStarted(callbacks);
+			
+			final String[] cmdarray = new String[params.length+1];
+			cmdarray[0] = command;
+			System.arraycopy(params, 0, cmdarray, 1, params.length);
+			
+			final Process process = runtime.exec(cmdarray, envp, workingDirectory);
+			
+			final LoggerCallbackInputThread inThread = new LoggerCallbackInputThread(commandString, process.getInputStream(), callbacks);
+			final LoggerCallbackErrorThread errThread = new LoggerCallbackErrorThread(commandString, process.getErrorStream(), callbacks);
+				
+			inThread.start();
+			errThread.start();
+			
+			final int outputCode = process.waitFor();
+			
+			inThread.join();
+			errThread.join();
+			
+			return new DefaultExecutionResult(outputCode);
+		} catch (IOException e) {
+			notifyError(callbacks, "Error executing command: " + commandString, e);
+			
+			throw new ExecutionException(-1, e, command);
+		} finally {
+			inputFinished(callbacks);
+		}
+	}
 
 	private static class LoggerThread extends Thread {
 		private final String command;
@@ -239,7 +332,7 @@ public abstract class AbstractBinariesExecutor<B extends Binaries> implements Bi
 		}
 	}
 
-	private static class LoggerCallbackInputThread extends Thread {
+	protected static class LoggerCallbackInputThread extends Thread {
 		private final String command;
 		private final BufferedReader reader;
 		private final List<InputLineCallback> callbacks;
@@ -265,7 +358,7 @@ public abstract class AbstractBinariesExecutor<B extends Binaries> implements Bi
 		}
 	}
 
-	private static class LoggerCallbackErrorThread extends Thread {
+	protected static class LoggerCallbackErrorThread extends Thread {
 		private final String command;
 		private final BufferedReader reader;
 		private final List<InputLineCallback> callbacks;

@@ -1,63 +1,65 @@
 package es.uvigo.esei.sing.bdbm.controller;
 
+import static es.uvigo.esei.sing.bdbm.fasta.FastaUtils.changeSequenceLength;
+import static es.uvigo.esei.sing.bdbm.fasta.FastaUtils.prefixFastaSequenceRenaming;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Reader;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import es.uvigo.esei.sing.bdbm.environment.execution.AbstractBinariesExecutor.InputLineCallback;
+import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinariesExecutor;
-import es.uvigo.esei.sing.bdbm.environment.execution.DefaultExecutionResult;
+import es.uvigo.esei.sing.bdbm.environment.execution.EMBOSSBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionException;
 import es.uvigo.esei.sing.bdbm.environment.execution.ExecutionResult;
 import es.uvigo.esei.sing.bdbm.environment.execution.SplignBinariesExecutor;
-import es.uvigo.esei.sing.bdbm.fasta.DefaultFastaParser;
 import es.uvigo.esei.sing.bdbm.fasta.FastaParseException;
-import es.uvigo.esei.sing.bdbm.fasta.FastaParser;
-import es.uvigo.esei.sing.bdbm.fasta.FastaParserAdapter;
-import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideDatabase;
+import es.uvigo.esei.sing.bdbm.fasta.FastaUtils;
+import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideDatabase;
+import es.uvigo.esei.sing.bdbm.persistence.entities.DefaultNucleotideFasta;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
+import es.uvigo.esei.sing.bdbm.util.DirectoryUtils;
 
 public class SplignCompartPipeline {
+	private static final String TO_BE_ERASED_SEQUENCE_NAME = "To_be_erased";
+
 	private final static Logger LOG = LoggerFactory.getLogger(SplignCompartPipeline.class);
 	
-	private BedToolsBinariesExecutor bBinaries;
+	private BedToolsBinariesExecutor btBinaries;
 	private SplignBinariesExecutor sBinaries;
 	private CompartBinariesExecutor cBinaries;
+	private BLASTBinariesExecutor bBinaries;
+	private EMBOSSBinariesExecutor eBinaries;
 	
 	public SplignCompartPipeline() {}
 
 	public SplignCompartPipeline(
-		BedToolsBinariesExecutor bBinaries,
+		BedToolsBinariesExecutor btBinaries,
 		SplignBinariesExecutor sBinaries,
-		CompartBinariesExecutor cBinaries
+		CompartBinariesExecutor cBinaries,
+		BLASTBinariesExecutor bBinaries,
+		EMBOSSBinariesExecutor eBinaries
 	) {
-		this.bBinaries = bBinaries;
+		this.btBinaries = btBinaries;
 		this.sBinaries = sBinaries;
 		this.cBinaries = cBinaries;
+		this.bBinaries = bBinaries;
+		this.eBinaries = eBinaries;
 	}
 	
-	public void setBedToolsBinaries(BedToolsBinariesExecutor bBinaries) {
-		this.bBinaries = bBinaries;
+	public void setBedToolsBinaries(BedToolsBinariesExecutor btBinaries) {
+		this.btBinaries = btBinaries;
 	}
 	
 	public void setSplignBinaries(SplignBinariesExecutor sBinaries) {
@@ -68,310 +70,382 @@ public class SplignCompartPipeline {
 		this.cBinaries = cBinaries;
 	}
 	
+	public void setBLASTBinariesExecutor(BLASTBinariesExecutor bBinaries) {
+		this.bBinaries = bBinaries;
+	}
+	
+	public void setEMBOSSBinaries(EMBOSSBinariesExecutor eBinaries) {
+		this.eBinaries = eBinaries;
+	}
+	
 	public ExecutionResult splignCompart(
 		NucleotideFasta genomeFasta, 
-		NucleotideDatabase genomeDB, 
-		NucleotideFasta cdsFasta,
-		NucleotideDatabase cdsDB,
-		NucleotideFasta fasta
+		NucleotideFasta genesFasta,
+		NucleotideFasta outputFasta,
+		boolean concatenateExons
 	) throws InterruptedException, ExecutionException, IOException, FastaParseException {
 		try (final DirectoryManager dirManager = new DirectoryManager(
-			genomeFasta, genomeDB, cdsFasta, cdsDB
+			genomeFasta, genesFasta, outputFasta
 		)) {
-			ExecutionResult mkldsResult = this.sBinaries.mklds(
-				dirManager.getWorkingDirectoryPath());
-			
-			if (mkldsResult.getExitStatus() != 0) {
-				return mkldsResult;
-			} else {
-				mkldsResult = null;
+			// Reversing and appending genome
+			final ExecutionResult reverseAndMergeResult = reverseAndMerge(
+				genomeFasta,
+				dirManager.getReversedGenomeFile(),
+				dirManager.getRenamedReversedGenomeFile(), dirManager.getBidirectionalGenomeFile());
+			if (reverseAndMergeResult != null) {
+				return reverseAndMergeResult;
 			}
 			
-			ExecutionResult compartResult = this.cBinaries.compart(
-				dirManager.getTargetFastaPath(),
-				dirManager.getReferenceFastaPath(),
-				dirManager.getCompartmentsCallback()
+			this.checkReverseAndMergeOutput(dirManager.getBidirectionalGenomeFile());
+			
+			// Genome and genes database creation
+			final ExecutionResult makeDBGenome = makeBlastDB(
+				dirManager.getBidirectionalGenomeFile(), dirManager.getWorkingDirectory());
+			if (makeDBGenome != null)
+				return makeDBGenome;
+			
+			final ExecutionResult makeDBGenes = makeBlastDB(
+				dirManager.getGenesFastaFile(), dirManager.getWorkingDirectory());
+			if (makeDBGenes != null)
+				return makeDBGenes;
+			
+			// SPLIGN-COMPART
+			final ExecutionResult mklds = this.mklds(dirManager.getWorkingDirectoryPath());
+			if (mklds != null)
+				return mklds;
+			
+			final ExecutionResult compart = this.compart(
+				dirManager.getGenesFastaPath(),
+				dirManager.getBidirectionalGenomePath(),
+				dirManager.getCompartmentsFile()
 			);
-			if (compartResult.getExitStatus() != 0) {
-				return compartResult;
-			} else {
-				compartResult = null;
-			}
+			if (compart != null)
+				return compart;
 			
-			ExecutionResult ldsdirResult = this.sBinaries.ldsdir(
+			final ExecutionResult ldsdir = this.ldsdir(
 				dirManager.getWorkingDirectoryPath(),
 				dirManager.getCompartmentsPath(),
-				dirManager.getLdsdirCallback()
+				dirManager.getLdsdirFile()
 			);
-			if (ldsdirResult.getExitStatus() != 0) {
-				return ldsdirResult;
-			} else {
-				ldsdirResult = null;
-			}
+			if (ldsdir != null)
+				return ldsdir;
 			
-			dirManager.createBedFile(ldsdirToBed(new FileReader(dirManager.getLdsdirPath())));
-			
-			ExecutionResult bedtoolsResult = this.bBinaries.getfasta(
-				dirManager.getReferenceFastaPath(),
-				dirManager.getBedPath(),
-				fasta.getFile().getAbsolutePath()
+			ldsdirToBed(dirManager.getLdsdirFile(), dirManager.getBedtoolsFile());
+
+			final ExecutionResult bedtoolsResult = this.bedtools(
+				dirManager.getBidirectionalGenomePath(),
+				dirManager.getBedtoolsPath(),
+				dirManager.getBedtoolsOutputPath()
 			);
-			if (bedtoolsResult.getExitStatus() != 0) {
+			if (bedtoolsResult != null)
 				return bedtoolsResult;
-			} else {
-				bedtoolsResult = null;
-			}
 			
-			mergeSequences(fasta);
+			this.mergeSequences(
+				dirManager.getBedtoolsOutputFile(),
+				dirManager.getBedtoolsMergedOutputFile(),
+				concatenateExons
+			);
 			
-			deleteNonATGSequences(fasta);
+			FileUtils.moveFile(dirManager.getBedtoolsMergedOutputFile(), outputFasta.getFile());
 			
-			return new DefaultExecutionResult(0);
+			return null;
 		}
 	}
 	
-	private static void deleteNonATGSequences(NucleotideFasta fasta) throws IOException, FastaParseException {
-		final Path filteredFile = Files.createTempFile("bdbm-filtered", "fasta");
-		
-		try (PrintWriter pw = new PrintWriter(filteredFile.toFile())) {
-			final FastaParser parser = new DefaultFastaParser();
-			parser.addParseListener(new FastaParserAdapter() {
-				String name, previousName;
-				StringBuilder sequence, previousSequence;
-				
-				@Override
-				public void sequenceNameRead(File file, String sequenceName) {
-					this.name = sequenceName;
-					this.sequence = new StringBuilder();
-				}
-				
-				@Override
-				public void sequenceFragmentRead(File file, String sequenceFragment) {
-					if (this.sequence.length() > 0)
-						this.sequence.append("\n");
-					this.sequence.append(sequenceFragment);
-				}
-				
-				@Override
-				public void sequenceEnd(File file) {
-					if (this.sequence.length() >= 3 && this.sequence.substring(0, 3).equalsIgnoreCase("ATG")) {
-						if (this.previousName != null && this.previousSequence != null) {
-							pw.println(this.previousName);
-							pw.println(this.previousSequence);
-						}
-						
-						this.previousName = this.name;
-						this.previousSequence = this.sequence;
-					} else {
-						this.previousName = null;
-						this.previousSequence = null;
-					}
-					
-					this.name = null;
-					this.sequence = null;
-				}
-				
-				@Override
-				public void parseEnd(File file) {
-					if (this.previousName != null && this.previousSequence != null) {
-						pw.println(this.previousSequence);
-						pw.println(this.previousName);
-					}
-				}
-			});
-			
-			parser.parse(fasta.getFile());
+	protected ExecutionResult reverseAndMerge(
+		NucleotideFasta fasta,
+		File reversedFastaFile,
+		File renamedReversedFastaFile,
+		File bidirectionalFastaFile
+	) throws InterruptedException, ExecutionException, FastaParseException, IOException {
+		final ExecutionResult revseqResult = this.eBinaries.executeRevseq(
+			fasta, new DefaultNucleotideFasta(reversedFastaFile)
+		);
+		if (revseqResult.getExitStatus() != 0) {
+			return revseqResult;
 		}
 		
-		Files.move(filteredFile, fasta.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+		try (PrintWriter fw = new PrintWriter(renamedReversedFastaFile)) {
+			prefixFastaSequenceRenaming(
+				reversedFastaFile, "Reversed", true, false, "_", fw);
+		}
+		
+		try (PrintWriter pw = new PrintWriter(bidirectionalFastaFile)) {
+			changeSequenceLength(fasta.getFile(), -1, pw);
+			changeSequenceLength(renamedReversedFastaFile, -1, pw);
+		}
+		
+		return null;
+	}
+	
+	protected void checkReverseAndMergeOutput(File fastaFile)
+	throws IOException {
+		if (!fastaFile.exists()) {
+			throw new IOException("Bidirectional genome file does not exists");
+		} else if (fastaFile.length() == 0) {
+			throw new IOException("Bidirectional genome file is empty");
+		}
 	}
 
-	private static void mergeSequences(NucleotideFasta fasta)
-	throws IOException, FileNotFoundException {
-		final File tempFasta = File.createTempFile("bdbm", ".fasta");
-		tempFasta.deleteOnExit();
+	protected ExecutionResult makeBlastDB(
+		final File fastaFile,
+		final File databaseDirectory
+	) throws InterruptedException, ExecutionException, IOException {
 		
-		final Map<String, AtomicInteger> count = new HashMap<>();
-		try (BufferedReader br = new BufferedReader(new FileReader(fasta.getFile()))) {
-			String line;
-			
-			while ((line = br.readLine()) != null) {
-				line = line.trim();
-				
-				if (line.isEmpty()) {
-					throw new IOException("Illegal fasta format in file: " + fasta.getFile().getAbsolutePath());
-				} else if (line.startsWith(">")) {
-					if (count.containsKey(line)) {
-						count.get(line).incrementAndGet();
-					} else {
-						count.put(line, new AtomicInteger(1));
-					}
+		final ExecutionResult result = this.bBinaries.executeMakeBlastDB(
+			fastaFile,
+			new DefaultNucleotideDatabase(databaseDirectory) {
+				public String getName() {
+					return fastaFile.getName();
 				}
 			}
-		}
+		);
 		
-		final Map<String, StringBuilder> sequences = new HashMap<>();
+		return result.getExitStatus() != 0 ? result : null;
+	}
+	
+	protected ExecutionResult mklds(
+		String directoryPath
+	) throws ExecutionException, InterruptedException {
+		final ExecutionResult result = this.sBinaries.mklds(directoryPath);
 		
-		try (BufferedReader br = new BufferedReader(new FileReader(fasta.getFile()), 4*1024*1024);
-			PrintWriter pw = new PrintWriter(tempFasta)
+		return result.getExitStatus() != 0 ? result : null;
+	}
+
+	protected ExecutionResult compart(
+		String genesFastaPath,
+		String genomeFastaPath,
+		File compartmentsFile
+	) throws ExecutionException, InterruptedException, IOException {
+		final ExecutionResult result = this.cBinaries.compart(
+			genesFastaPath,
+			genomeFastaPath,
+			new InputLineToFileCallback(compartmentsFile)
+		);
+		
+		return result.getExitStatus() != 0 ? result : null;
+	}
+
+	protected ExecutionResult ldsdir(
+		String workingDirectoryPath,
+		String compartmentsPath,
+		File ldsdirFile
+	) throws ExecutionException, InterruptedException {
+		final ExecutionResult result = this.sBinaries.ldsdir(
+			workingDirectoryPath,
+			compartmentsPath,
+			new InputLineToFileCallback(ldsdirFile)
+		);
+		
+		return result.getExitStatus() != 0 ? result : null;
+	}
+
+	protected void ldsdirToBed(File input, File output) throws IOException {
+		try (final BufferedReader reader = new BufferedReader(new FileReader(input));
+			final PrintWriter pw = new PrintWriter(output)
 		) {
-			String currentName = null;
-			StringBuilder currentSequence = null;
-			
 			String line;
-			boolean end = false;
-			do {
-				currentName = br.readLine();
-				if (currentName == null || !currentName.startsWith(">"))
-					throw new IOException("Illegal fasta format in file: " + fasta.getFile().getAbsolutePath());
-				currentName = currentName.trim();
+			
+			while ((line = reader.readLine()) != null && !line.equals("# END")) {
+				final String[] split = line.split("\t");
 				
-				currentSequence = new StringBuilder();
-				while (true) {
-					br.mark(4*1024*1024);
-					line = br.readLine();
-					
-					if (line == null) {
-						end = true;
-						break;
-					} else if (line.startsWith(">")) {
-						br.reset();
-						break;
+				if (split.length == 11) {
+					if (split[7].equals("-")) {
+						final String info = split[2];
+						pw.append(info).append("\t2\t3\t")
+							.println(TO_BE_ERASED_SEQUENCE_NAME);
 					} else {
-						currentSequence.append(line);
+						final Integer start = safeParseInt(split[7]) - 1;
+						final Integer end = safeParseInt(split[8]);
+						
+						if (start < end) {
+							final String name = split[1];
+							final String info = split[2];
+							pw.append(info).append('\t')
+								.append(Integer.toString(start)).append('\t')
+								.append(Integer.toString(end)).append('\t')
+								.append(name).append('\n');
+						}
 					}
 				}
-				
-				if (currentSequence.length() == 0)
-					throw new IOException("Illegal fasta format in file: " + fasta.getFile().getAbsolutePath());
-				
-				if (!sequences.containsKey(currentName)) {
-					sequences.put(currentName, new StringBuilder());
-				}
-				sequences.get(currentName).append(currentSequence);
-				
-				if (count.get(currentName).decrementAndGet() == 0) {
-					count.remove(currentName);
-					
-					pw.println(currentName);
-					pw.println(sequences.remove(currentName));
-				}
-			} while (!end);
+			}
 		}
+	}
 
-		Files.move(tempFasta.toPath(), fasta.getFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+	protected ExecutionResult bedtools(
+		String genomeFasta,
+		String bedtoolsFasta,
+		String bedtoolsOutputFile
+	) throws ExecutionException, InterruptedException {
+		final ExecutionResult result = this.btBinaries.getfasta(
+			genomeFasta,
+			bedtoolsFasta,
+			bedtoolsOutputFile
+		);
+		
+		return result.getExitStatus() != 0 ? result : null;
+	}
+
+	protected void mergeSequences(
+		File inputFasta,
+		File outputFasta,
+		boolean concatenateExons
+	) throws ExecutionException {
+		try {
+			final File tmpFile = File.createTempFile("bdbm", "tmp");
+			
+			try (final PrintWriter pw = new PrintWriter(tmpFile)) {
+				if (concatenateExons) {
+					FastaUtils.mergeConsecutiveSequences(inputFasta, pw, TO_BE_ERASED_SEQUENCE_NAME);
+				} else {
+					FastaUtils.removeSequences(inputFasta, pw, TO_BE_ERASED_SEQUENCE_NAME);
+				}
+			}
+			
+			try (PrintWriter pw = new PrintWriter(outputFasta)) {
+				FastaUtils.prefixFastaSequenceRenaming(tmpFile, null, true, true, "-", pw);
+			}
+		} catch (Exception e) {
+			throw new ExecutionException(-1, "Error cleaning final fasta file", e, null);
+		}
 	}
 	
-	private static class DirectoryManager implements AutoCloseable {
+	private static Integer safeParseInt(String value) {
+		try {
+			return Integer.valueOf(value);
+		} catch (NumberFormatException nfe) {
+			return null;
+		}
+	}
+	
+	protected static class DirectoryManager implements AutoCloseable {
 		private final Path workingDirectory;
-		private final Path targetFastaFile;
-		private final Path referenceFastaFile;
-		private Path compartmentsFile;
-		private Path ldsdirFile;
-		private Path bedFile;
+		private final Path genomeFastaFile;
+		private final Path genesFastaFile;
+		
+		private final Path bidirectionalGenomeFile;
+		private final Path reversedGenomeFile;
+		private final Path renamedReversedGenomeFile;
+		private final Path compartmentsFile;
+		private final Path ldsdirFile;
+		private final Path bedtoolsFile;
+		private final Path bedtoolsOutputFile;
+		private final Path bedtoolsMergedOutputFile;
 		
 		public DirectoryManager(
-			NucleotideFasta referenceFasta,
-			NucleotideDatabase referenceDB,
-			NucleotideFasta targetFasta,
-			NucleotideDatabase targetDB
+			NucleotideFasta genomeFasta,
+			NucleotideFasta genesFasta,
+			NucleotideFasta outputFasta
 		) throws IOException {
 			this.workingDirectory = Files.createTempDirectory("bdbm_spligncompart");
-			final Path targetFastaPath = targetFasta.getFile().toPath();
-			final Path referenceFastaPath = referenceFasta.getFile().toPath();
+			final Path genomeFastaPath = genomeFasta.getFile().toPath();
+			final Path genesFastaPath = genesFasta.getFile().toPath();
 			
-			this.referenceFastaFile = this.workingDirectory.resolve("reference");
-			this.targetFastaFile = this.workingDirectory.resolve("target");
+			this.genomeFastaFile = this.workingDirectory.resolve("genome");
+			this.genesFastaFile = this.workingDirectory.resolve("genes");
 			
-			this.createSymlinksToDirFiles(referenceDB.getDirectory().getParentFile().toPath(), "reference");
-			this.createSymlinksToDirFiles(targetDB.getDirectory().getParentFile().toPath(), "target");
-			Files.createSymbolicLink(this.referenceFastaFile, referenceFastaPath);
-			Files.createSymbolicLink(this.targetFastaFile, targetFastaPath);
+			Files.createSymbolicLink(this.genomeFastaFile, genomeFastaPath);
+			Files.createSymbolicLink(this.genesFastaFile, genesFastaPath);
+			
+			this.bidirectionalGenomeFile = this.workingDirectory.resolve("genome_bidirectional");
+			this.reversedGenomeFile = this.workingDirectory.resolve("genome_reversed");
+			this.renamedReversedGenomeFile = this.workingDirectory.resolve("genome_reversed_renamed");
+			this.compartmentsFile = this.workingDirectory.resolve("compartments");
+			this.ldsdirFile = this.workingDirectory.resolve("ldsdir");
+			this.bedtoolsFile = this.workingDirectory.resolve("bedtools");
+			this.bedtoolsOutputFile = this.workingDirectory.resolve("bedtools_output");
+			this.bedtoolsMergedOutputFile = this.workingDirectory.resolve("bedtools_merged_output");
 		}
 		
-		private void createSymlinksToDirFiles(Path linksDir, final String filesname)
-		throws IOException {
-			Files.walkFileTree(linksDir, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file,	BasicFileAttributes attrs) 
-				throws IOException {
-					final String extension = FilenameUtils.getExtension(file.toString());
-					
-					Files.createSymbolicLink(workingDirectory.resolve(filesname + "." + extension), file);
-					
-					return FileVisitResult.CONTINUE;
-				}
-			});
+		public String getBidirectionalGenomePath() {
+			return this.bidirectionalGenomeFile.toAbsolutePath().toString();
 		}
-		
-		public InputLineCallback getCompartmentsCallback() throws IOException {
-			this.compartmentsFile = Files.createTempFile("bdbm", ".compartments");
 
-			return new InputLineToFileCallback(this.compartmentsFile.toFile());
+		public File getWorkingDirectory() {
+			return this.workingDirectory.toFile();
+		}
+
+		public File getBedtoolsMergedOutputFile() {
+			return this.bedtoolsMergedOutputFile.toFile();
+		}
+
+		public File getBedtoolsOutputFile() {
+			return this.bedtoolsOutputFile.toFile();
+		}
+
+		public File getBedtoolsFile() {
+			return this.bedtoolsFile.toFile();
+		}
+
+		public String getBedtoolsOutputPath() {
+			return this.bedtoolsOutputFile.toAbsolutePath().toString();
 		}
 		
-		public InputLineCallback getLdsdirCallback() throws IOException {
-			this.ldsdirFile = Files.createTempFile("bdbm", ".ldsdir");
-			
-			return new InputLineToFileCallback(this.ldsdirFile.toFile());
+		public String getBedtoolsPath() {
+			return this.bedtoolsFile.toAbsolutePath().toString();
 		}
 		
-		public void createBedFile(String text) throws IOException {
-			this.bedFile = Files.createTempFile("bdbm", ".bed");
-			Files.write(this.bedFile, text.getBytes());
+		public File getLdsdirFile() {
+			return this.ldsdirFile.toFile();
+		}
+		
+		public File getCompartmentsFile() {
+			return this.compartmentsFile.toFile();
 		}
 		
 		public String getCompartmentsPath() {
-			return compartmentsFile.toString();
+			return this.compartmentsFile.toAbsolutePath().toString();
 		}
-		
-		public String getLdsdirPath() {
-			return ldsdirFile.toString();
+
+		public String getGenomeFastaPath() {
+			return this.genomeFastaFile.toAbsolutePath().toString();
 		}
-		
-		public String getBedPath() {
-			return bedFile.toString();
+
+		public String getGenesFastaPath() {
+			return this.genesFastaFile.toAbsolutePath().toString();
 		}
-		
+
+		public File getGenesFastaFile() {
+			return this.genesFastaFile.toFile();
+		}
+
 		public String getWorkingDirectoryPath() {
-			return workingDirectory.toString();
+			return this.workingDirectory.toAbsolutePath().toString();
+		}
+
+		public File getGenomeDatabaseDirectory() {
+			return this.getBidirectionalGenomeFile();
 		}
 		
-		public String getTargetFastaPath() {
-			return targetFastaFile.toString();
+		public File getGenesDatabaseDirectory() {
+			return this.getGenesFastaFile();
+		}
+
+		public File getBidirectionalGenomeFile() {
+			return this.bidirectionalGenomeFile.toFile();
+		}
+
+		public File getReversedGenomeFile() {
+			return this.reversedGenomeFile.toFile();
 		}
 		
-		public String getReferenceFastaPath() {
-			return referenceFastaFile.toString();
+		public File getRenamedReversedGenomeFile() {
+			return this.renamedReversedGenomeFile.toFile();
 		}
-		
+
 		@Override
 		public void close() throws IOException {
 			if (Boolean.valueOf(System.getProperty("spligncompart.deletetmpfiles", "true"))) {
-				if (this.compartmentsFile != null)
-					Files.deleteIfExists(this.compartmentsFile);
-				if (this.ldsdirFile != null)
-					Files.deleteIfExists(this.ldsdirFile);
-				if (this.bedFile != null)
-					Files.deleteIfExists(this.bedFile);
+				Files.deleteIfExists(this.bidirectionalGenomeFile);
+				Files.deleteIfExists(this.reversedGenomeFile);
+				Files.deleteIfExists(this.renamedReversedGenomeFile);
+				Files.deleteIfExists(this.compartmentsFile);
+				Files.deleteIfExists(this.ldsdirFile);
+				Files.deleteIfExists(this.bedtoolsFile);
+				Files.deleteIfExists(this.bedtoolsOutputFile);
+				Files.deleteIfExists(this.bedtoolsMergedOutputFile);
 				
-				Files.walkFileTree(this.workingDirectory, new SimpleFileVisitor<Path>() {
-					@Override
-					public FileVisitResult visitFile(Path file,	BasicFileAttributes attrs) 
-					throws IOException {
-						Files.delete(file);
-						
-						return FileVisitResult.CONTINUE;
-					}
-					
-					@Override
-					public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-					throws IOException {
-						Files.delete(dir);
-						
-						return FileVisitResult.CONTINUE;
-					}
-				});
+				DirectoryUtils.deleteIfExists(this.workingDirectory);
 			}
 		}
 	}
@@ -412,100 +486,5 @@ public class SplignCompartPipeline {
 		@Override
 		public void info(String message) {
 		}
-	}
-
-	public static String ldsdirToBed(Reader input) throws IOException {
-		try (final BufferedReader reader = new BufferedReader(input)) {
-			String line;
-			
-			final StringBuilder sb = new StringBuilder();
-			StringBuilder currentGene = null;
-			String lastSequence = null;
-			
-			int offsetCount = 1;
-			while ((line = reader.readLine()) != null) {
-				final String[] split = line.split("\t");
-				
-				if (split.length == 11) {
-					if (isTargetSequence(split[9])) {
-						line = line.replaceAll("-\t-", "0\t0");
-					
-						final Integer startOffset = safeParseInt(split[5]);
-						final Integer endOffset = safeParseInt(split[6]);
-						final Integer startPosition = safeParseInt(split[7]);
-						final Integer endPosition = safeParseInt(split[8]);
-						
-						if (startOffset != null && endOffset != null
-							&& startPosition != null && endPosition != null
-							&& (startOffset < endOffset) 
-							&& (startPosition < endPosition) 
-							&& (startOffset == 1 || startOffset == offsetCount) 
-						) {
-							if (startOffset == 1) {
-								checkAndAppend(currentGene, lastSequence, sb);
-								currentGene = new StringBuilder();
-								lastSequence = null;
-							}
-							
-							currentGene.append(split[2]).append('\t') // Name
-								.append(startPosition - 1).append('\t') // startPosition with correction
-								.append(split[8]).append('\t') // endPosition
-								.append(split[1]).append('\t') // index
-								.append(split[9]) // sequence
-							.append('\n');
-							
-							lastSequence = split[9];
-							offsetCount = endOffset + 1;
-						} else {
-							checkAndAppend(currentGene, lastSequence, sb); 
-							
-							offsetCount = 1;
-							currentGene = null;
-							lastSequence = null;
-						}
-					}
-				}
-			}
-			
-			checkAndAppend(currentGene, lastSequence, sb);
-			
-			return sb.toString();
-		}
-	}
-
-	public static void checkAndAppend(
-		StringBuilder currentGene, String lastSequence, StringBuilder result
-	) {
-		if (currentGene != null && isValidEnd(lastSequence)) {
-			result.append(currentGene);
-		}
-	}
-
-	private static Integer safeParseInt(String value) {
-		try {
-			return Integer.valueOf(value);
-		} catch (NumberFormatException nfe) {
-			return null;
-		}
-	}
-	
-	private static boolean isTargetSequence(String sequence) {
-		final List<String> targetExons = Arrays.asList(
-			"  <exon>TA", "  <exon>TG", "  <exon>GT",
-			"AG<exon>TA", "AG<exon>TG", "AG<exon>GT",
-			"<poly-A>", "  <exon>  "
-		);
-		
-		return targetExons.contains(sequence);
-	}
-	
-	private static boolean isValidEnd(String lastSequence) {
-		final List<String> targetExons = Arrays.asList(
-			"  <exon>TA", "  <exon>TG",
-			"AG<exon>TA", "AG<exon>TG",
-			"<poly-A>"
-		);
-		
-		return targetExons.contains(lastSequence);
 	}
 }

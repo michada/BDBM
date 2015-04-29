@@ -1,7 +1,5 @@
 package es.uvigo.esei.sing.bdbm.environment.execution;
 
-import java.io.IOException;
-
 import es.uvigo.esei.sing.bdbm.environment.binaries.EMBOSSBinaries;
 import es.uvigo.esei.sing.bdbm.persistence.entities.NucleotideFasta;
 
@@ -13,10 +11,10 @@ public interface EMBOSSBinariesExecutor extends BinariesExecutor<EMBOSSBinaries>
 		NucleotideFasta orf,
 		int minSize,
 		int maxSize
-	) throws InterruptedException, ExecutionException, IOException;
+	) throws InterruptedException, ExecutionException;
 	
 	public ExecutionResult executeRevseq(
 		NucleotideFasta fasta,
 		NucleotideFasta outputFasta
-	) throws InterruptedException, ExecutionException, IOException;
+	) throws InterruptedException, ExecutionException;
 }

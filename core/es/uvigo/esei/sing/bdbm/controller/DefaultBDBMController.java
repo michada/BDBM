@@ -643,9 +643,8 @@ public class DefaultBDBMController implements BDBMController {
 	@Override
 	public NucleotideFasta splignCompart(
 		NucleotideFasta genomeFasta,
-		NucleotideDatabase genomeDB,
 		NucleotideFasta cdsFasta,
-		NucleotideDatabase cdsDB,
+		boolean concatenateExons,
 		String outputName
 	) throws IOException, InterruptedException, ExecutionException, IllegalStateException, FastaParseException {
 		final FastaRepositoryManager fastaManager = this.repositoryManager.fasta();
@@ -657,14 +656,16 @@ public class DefaultBDBMController implements BDBMController {
 			final SplignCompartPipeline pipeline = new SplignCompartPipeline(
 				this.bedToolsBinariesExecutor,
 				this.splignBinariesExecutor,
-				this.compartBinariesExecutor
+				this.compartBinariesExecutor,
+				this.blastBinariesExecutor,
+				this.embossBinariesExecutor
 			);
 			
 			final ExecutionResult result = pipeline.splignCompart(
-				genomeFasta, genomeDB, cdsFasta, cdsDB, fasta
+				genomeFasta, cdsFasta, fasta, concatenateExons
 			);
 			
-			if (result.getExitStatus() != 0) {
+			if (result != null && result.getExitStatus() != 0) {
 				if (fastaManager.exists(fasta))
 					fastaManager.delete(fasta);
 				

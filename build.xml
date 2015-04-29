@@ -1,6 +1,6 @@
-<project name="BDBM - BLAST DataBase Manager">
+<project name="BDBM - BLAST DataBase Manager" default="dist-gui">
 	<property name="project-name" value="BDBM"/>
-	<property name="version" value="0.9.4"/>
+	<property name="version" value="0.10.0"/>
 	<property name="dir-dists" location="dists"/>
 	<property name="dir-jars" location="${dir-dists}${file.separator}jars"/>
 	<property name="dir-gui" location="${dir-dists}${file.separator}gui"/>
@@ -77,10 +77,17 @@ blast.binDir=
 # Comment or leave it blank if the EMBOSS binaries are in the system path.
 emboss.binDir=
 
-# Absolute path to the folder that contains EMBOSS binaries.
-# Comment or leave it blank if the NCBI binaries (splign, compart and bedtools)
-# are in the system path.
-ncbi.binDir=
+# Absolute path to the folder that contains BEDTOOLS binary.
+# Comment or leave it blank if the BEDTOOLS binary is in the system path.
+bedtools.binDir=
+
+# Absolute path to the folder that contains SPLIGN binary.
+# Comment or leave it blank if the SPLIGN binary is in the system path.
+splign.binDir=
+
+# Absolute path to the folder that contains COMPART binary.
+# Comment or leave it blank if the COMPART binary is in the system path.
+compart.binDir=
 
 # Enables or disables the accesion inference. If true, accesion field in
 # Retrieve Search Entry will be a combo box, otherwise it will be a text field
