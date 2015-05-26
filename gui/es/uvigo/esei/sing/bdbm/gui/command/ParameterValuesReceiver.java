@@ -2,7 +2,7 @@ package es.uvigo.esei.sing.bdbm.gui.command;
 
 import java.util.List;
 
-import es.uvigo.ei.sing.yacli.Option;
+import es.uvigo.ei.sing.yaacli.Option;
 
 public interface ParameterValuesReceiver {
 	public abstract String getValue(Option<?> option);

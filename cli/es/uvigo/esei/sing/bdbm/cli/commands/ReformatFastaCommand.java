@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import es.uvigo.ei.sing.yacli.DefaultValuedStringOption;
-import es.uvigo.ei.sing.yacli.Option;
-import es.uvigo.ei.sing.yacli.Parameters;
-import es.uvigo.ei.sing.yacli.StringConstructedOption;
-import es.uvigo.ei.sing.yacli.StringOption;
+import es.uvigo.ei.sing.yaacli.DefaultValuedStringOption;
+import es.uvigo.ei.sing.yaacli.Option;
+import es.uvigo.ei.sing.yaacli.Parameters;
+import es.uvigo.ei.sing.yaacli.StringConstructedOption;
+import es.uvigo.ei.sing.yaacli.StringOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.DefaultValueBooleanOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.EnumOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;

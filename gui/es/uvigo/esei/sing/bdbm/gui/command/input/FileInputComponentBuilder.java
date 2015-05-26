@@ -11,7 +11,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import es.uvigo.ei.sing.yacli.Option;
+import es.uvigo.ei.sing.yaacli.Option;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 
 public class FileInputComponentBuilder implements InputComponentBuilder {

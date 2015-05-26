@@ -5,7 +5,7 @@ import java.awt.Component;
 
 import javax.swing.JPanel;
 
-import es.uvigo.ei.sing.yacli.Option;
+import es.uvigo.ei.sing.yaacli.Option;
 import es.uvigo.esei.sing.bdbm.gui.command.input.InputComponentBuilder;
 
 public class MultipleInputComponentBuilder implements InputComponentBuilder {

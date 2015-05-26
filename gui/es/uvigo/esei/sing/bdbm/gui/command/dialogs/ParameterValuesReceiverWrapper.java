@@ -2,7 +2,7 @@ package es.uvigo.esei.sing.bdbm.gui.command.dialogs;
 
 import java.util.List;
 
-import es.uvigo.ei.sing.yacli.Option;
+import es.uvigo.ei.sing.yaacli.Option;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 
 public class ParameterValuesReceiverWrapper extends AbstractParameterValuesReceiver {

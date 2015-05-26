@@ -27,13 +27,13 @@ import javax.swing.tree.TreePath;
 
 import org.apache.commons.io.FileUtils;
 
-import es.uvigo.ei.sing.yacli.Command;
-import es.uvigo.ei.sing.yacli.DefaultParameters;
-import es.uvigo.ei.sing.yacli.MultipleParameterValue;
-import es.uvigo.ei.sing.yacli.Option;
-import es.uvigo.ei.sing.yacli.ParameterValue;
-import es.uvigo.ei.sing.yacli.Parameters;
-import es.uvigo.ei.sing.yacli.SingleParameterValue;
+import es.uvigo.ei.sing.yaacli.Command;
+import es.uvigo.ei.sing.yaacli.DefaultParameters;
+import es.uvigo.ei.sing.yaacli.MultipleParameterValue;
+import es.uvigo.ei.sing.yaacli.Option;
+import es.uvigo.ei.sing.yaacli.ParameterValue;
+import es.uvigo.ei.sing.yaacli.Parameters;
+import es.uvigo.ei.sing.yaacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTDBAliasToolCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.GetORFCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;

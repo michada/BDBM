@@ -6,9 +6,9 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JComboBox;
 
-import es.uvigo.ei.sing.yacli.Option;
-import es.uvigo.ei.sing.yacli.OptionConverter;
-import es.uvigo.ei.sing.yacli.SingleParameterValue;
+import es.uvigo.ei.sing.yaacli.Option;
+import es.uvigo.ei.sing.yaacli.OptionConverter;
+import es.uvigo.ei.sing.yaacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 
 public class EnumInputComponentBuilder implements InputComponentBuilder {

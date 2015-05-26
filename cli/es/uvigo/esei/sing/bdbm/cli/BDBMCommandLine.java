@@ -1,7 +1,7 @@
 package es.uvigo.esei.sing.bdbm.cli;
 
-import es.uvigo.ei.sing.yacli.CLIApplication;
-import es.uvigo.ei.sing.yacli.CommandLine;
+import es.uvigo.ei.sing.yaacli.CLIApplication;
+import es.uvigo.ei.sing.yaacli.CommandLine;
 
 public class BDBMCommandLine extends CommandLine {
 	@Override

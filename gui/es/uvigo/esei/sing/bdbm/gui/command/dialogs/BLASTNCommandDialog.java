@@ -11,8 +11,8 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import es.uvigo.ei.sing.yacli.Option;
-import es.uvigo.ei.sing.yacli.Parameters;
+import es.uvigo.ei.sing.yaacli.Option;
+import es.uvigo.ei.sing.yaacli.Parameters;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTNCommand;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.gui.command.CommandDialog;

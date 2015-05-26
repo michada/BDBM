@@ -1,6 +1,6 @@
 package es.uvigo.esei.sing.bdbm.cli.commands.converters;
 
-import es.uvigo.ei.sing.yacli.DefaultValuedStringConstructedOption;
+import es.uvigo.ei.sing.yaacli.DefaultValuedStringConstructedOption;
 
 public class IntegerOption extends DefaultValuedStringConstructedOption<Integer> {
 	public IntegerOption(

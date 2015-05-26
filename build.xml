@@ -1,6 +1,6 @@
 <project name="BDBM - BLAST DataBase Manager" default="dist-gui">
 	<property name="project-name" value="BDBM"/>
-	<property name="version" value="0.10.0"/>
+	<property name="version" value="0.10.1"/>
 	<property name="dir-dists" location="dists"/>
 	<property name="dir-jars" location="${dir-dists}${file.separator}jars"/>
 	<property name="dir-gui" location="${dir-dists}${file.separator}gui"/>
@@ -32,7 +32,7 @@
 				<include name="logback-core-1.0.9.jar"/>
 				<include name="slf4j-api-1.7.2.jar"/>
 			</fileset>
-			<fileset file="..${file.separator}yacli${file.separator}target${file.separator}yacli-0.0.2-SNAPSHOT.jar"/>
+			<fileset file="..${file.separator}yaacli${file.separator}target${file.separator}yaacli-0.0.2-SNAPSHOT.jar"/>
 		</copy>
 		<!--copy todir="${dist-gui-dir}">
 			<fileset file="bdbm.conf"/>
@@ -45,7 +45,7 @@
 			<fileset dir="cli_bin"/>
 			
 			<manifest>
-				<attribute name="Class-Path" value="lib/commons-compiler.jar lib/commons-io-2.4.jar lib/commons-lang3-3.3.2.jar lib/janino.jar lib/jfontchooser-1.0.5.jar lib/logback-classic-1.0.9.jar lib/logback-core-1.0.9.jar lib/slf4j-api-1.7.2.jar lib/yacli-0.0.2-SNAPSHOT.jar"/>
+				<attribute name="Class-Path" value="lib/commons-compiler.jar lib/commons-io-2.4.jar lib/commons-lang3-3.3.2.jar lib/janino.jar lib/jfontchooser-1.0.5.jar lib/logback-classic-1.0.9.jar lib/logback-core-1.0.9.jar lib/slf4j-api-1.7.2.jar lib/yaacli-0.0.2-SNAPSHOT.jar"/>
 				<attribute name="Main-Class" value="es.uvigo.esei.sing.bdbm.gui.GUI"/>
 			</manifest>
 		</jar>

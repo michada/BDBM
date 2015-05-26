@@ -7,9 +7,9 @@ import java.awt.event.ActionListener;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 
-import es.uvigo.ei.sing.yacli.Option;
-import es.uvigo.ei.sing.yacli.Parameters;
-import es.uvigo.ei.sing.yacli.SingleParameterValue;
+import es.uvigo.ei.sing.yaacli.Option;
+import es.uvigo.ei.sing.yaacli.Parameters;
+import es.uvigo.ei.sing.yaacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.cli.commands.MakeBLASTDBCommand;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.environment.SequenceType;

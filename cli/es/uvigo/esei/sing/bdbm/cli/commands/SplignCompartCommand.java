@@ -2,8 +2,8 @@ package es.uvigo.esei.sing.bdbm.cli.commands;
 
 import java.io.File;
 
-import es.uvigo.ei.sing.yacli.Parameters;
-import es.uvigo.ei.sing.yacli.StringOption;
+import es.uvigo.ei.sing.yaacli.Parameters;
+import es.uvigo.ei.sing.yaacli.StringOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.DefaultValueBooleanOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;

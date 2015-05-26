@@ -14,9 +14,9 @@ import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 
-import es.uvigo.ei.sing.yacli.Option;
-import es.uvigo.ei.sing.yacli.Parameters;
-import es.uvigo.ei.sing.yacli.SingleParameterValue;
+import es.uvigo.ei.sing.yaacli.Option;
+import es.uvigo.ei.sing.yaacli.Parameters;
+import es.uvigo.ei.sing.yaacli.SingleParameterValue;
 import es.uvigo.esei.sing.bdbm.cli.commands.BLASTDBAliasToolCommand;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.FileOption;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;

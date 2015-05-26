@@ -16,7 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import es.uvigo.esei.sing.bdbm.environment.execution.AbstractBinariesExecutor.InputLineCallback;
+import es.uvigo.esei.sing.bdbm.environment.execution.BinariesExecutor.InputLineCallback;
 import es.uvigo.esei.sing.bdbm.environment.execution.BLASTBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.BedToolsBinariesExecutor;
 import es.uvigo.esei.sing.bdbm.environment.execution.CompartBinariesExecutor;

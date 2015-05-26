@@ -3,8 +3,8 @@ package es.uvigo.esei.sing.bdbm.cli.commands;
 import java.io.File;
 import java.math.BigDecimal;
 
-import es.uvigo.ei.sing.yacli.Parameters;
-import es.uvigo.ei.sing.yacli.StringOption;
+import es.uvigo.ei.sing.yaacli.Parameters;
+import es.uvigo.ei.sing.yaacli.StringOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.BigDecimalOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.BooleanOption;
 import es.uvigo.esei.sing.bdbm.cli.commands.converters.DefaultValueBooleanOption;

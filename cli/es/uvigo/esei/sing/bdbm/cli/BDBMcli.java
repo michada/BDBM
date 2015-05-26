@@ -10,8 +10,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import es.uvigo.ei.sing.yacli.CLIApplication;
-import es.uvigo.ei.sing.yacli.Command;
+import es.uvigo.ei.sing.yaacli.CLIApplication;
+import es.uvigo.ei.sing.yaacli.Command;
 import es.uvigo.esei.sing.bdbm.BDBMManager;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.controller.DefaultBDBMController;

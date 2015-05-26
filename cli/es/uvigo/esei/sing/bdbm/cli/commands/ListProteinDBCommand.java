@@ -3,8 +3,8 @@ package es.uvigo.esei.sing.bdbm.cli.commands;
 import java.util.Collections;
 import java.util.List;
 
-import es.uvigo.ei.sing.yacli.Option;
-import es.uvigo.ei.sing.yacli.Parameters;
+import es.uvigo.ei.sing.yaacli.Option;
+import es.uvigo.ei.sing.yaacli.Parameters;
 import es.uvigo.esei.sing.bdbm.controller.BDBMController;
 import es.uvigo.esei.sing.bdbm.persistence.entities.ProteinDatabase;
 

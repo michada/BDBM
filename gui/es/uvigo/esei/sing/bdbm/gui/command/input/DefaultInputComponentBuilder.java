@@ -12,7 +12,7 @@ import javax.swing.event.DocumentListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import es.uvigo.ei.sing.yacli.Option;
+import es.uvigo.ei.sing.yaacli.Option;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 
 public class DefaultInputComponentBuilder implements InputComponentBuilder {

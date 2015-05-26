@@ -32,14 +32,6 @@ public abstract class AbstractBinariesExecutor<B extends Binaries> implements Bi
 		return sb.toString();
 	}
 	
-	public static interface InputLineCallback {
-		public void info(String message);
-		public void line(String line);
-		public void error(String message, Exception e);
-		public void inputStarted();
-		public void inputFinished();
-	}
-	
 	protected static void inputStarted(List<InputLineCallback> callbacks) {
 		for (InputLineCallback callback : callbacks) {
 			callback.inputStarted();

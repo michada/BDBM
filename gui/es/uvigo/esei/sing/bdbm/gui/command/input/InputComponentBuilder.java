@@ -2,7 +2,7 @@ package es.uvigo.esei.sing.bdbm.gui.command.input;
 
 import java.awt.Component;
 
-import es.uvigo.ei.sing.yacli.Option;
+import es.uvigo.ei.sing.yaacli.Option;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 
 public interface InputComponentBuilder {

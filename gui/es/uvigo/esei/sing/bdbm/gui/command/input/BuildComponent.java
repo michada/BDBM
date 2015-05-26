@@ -5,7 +5,7 @@ import java.awt.Component;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 
-import es.uvigo.ei.sing.yacli.Option;
+import es.uvigo.ei.sing.yaacli.Option;
 import es.uvigo.esei.sing.bdbm.gui.command.ParameterValuesReceiver;
 
 public class BuildComponent {

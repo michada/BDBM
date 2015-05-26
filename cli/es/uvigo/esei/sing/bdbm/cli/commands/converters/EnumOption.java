@@ -1,8 +1,8 @@
 package es.uvigo.esei.sing.bdbm.cli.commands.converters;
 
-import es.uvigo.ei.sing.yacli.AbstractOptionConverter;
-import es.uvigo.ei.sing.yacli.DefaultValuedOption;
-import es.uvigo.ei.sing.yacli.SingleParameterValue;
+import es.uvigo.ei.sing.yaacli.AbstractOptionConverter;
+import es.uvigo.ei.sing.yaacli.DefaultValuedOption;
+import es.uvigo.ei.sing.yaacli.SingleParameterValue;
 
 public class EnumOption<T extends Enum<T>> extends DefaultValuedOption<T> {
 	public EnumOption(
